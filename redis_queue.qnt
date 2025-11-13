@@ -1,4 +1,4 @@
-module QueueBase {
+module RedisQueue {
     // Abstract state
     type Message = int
     var queue: List[Message]
@@ -7,7 +7,6 @@ module QueueBase {
     pure val QUEUE = [1,2,3,4,5]
     pure val MAX_ITEMS = 5
 
-    // Actions
     def isEmpty(q: List[Message]): bool =
         length(q) == 0
 
@@ -29,6 +28,10 @@ module QueueBase {
             queue' = tail(queue)
     }
 
+    // Crash: Redis process dies, memory wiped
+    action crash =
+        queue' = []
+
     action init = {
         // At the initial state, all balances are zero
         queue' = QUEUE
@@ -38,7 +41,8 @@ module QueueBase {
         nondet m = 1.to(5).oneOf()
         any {
             enqueue(m),
-            dequeue
+            dequeue,
+            crash
         }
     }
         

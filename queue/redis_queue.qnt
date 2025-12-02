@@ -2,8 +2,10 @@ module RedisQueue {
     import QueueBase.* from "./queue"
 
     // Crash: Redis process dies, memory wiped
-    action crash =
-        queue' = []
+    action crash = all {
+        queue' = [],
+        delivered' = delivered
+    }
 
     action step = {
         nondet m = 1.to(5).oneOf()
@@ -13,4 +15,7 @@ module RedisQueue {
             crash
         }
     }
+
+    // Redis-specific Invariants
+    // TODO
 }

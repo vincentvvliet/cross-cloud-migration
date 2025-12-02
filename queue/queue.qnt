@@ -8,36 +8,46 @@ module QueueBase {
     // Abstract state
     type Message = int
     var queue: List[Message]
+    var delivered: List[Message]
 
     // Global variables
     pure val QUEUE = [1,2,3,4,5]
     pure val MAX_ITEMS = 5
 
-    // Actions
     def isEmpty(q: List[Message]): bool =
         length(q) == 0
 
     // Actions
-    action enqueue(m: Message): bool = {
-        if (length(queue) == MAX_ITEMS)
+    action enqueue(m: Message): bool = all {
+        if (length(queue) == MAX_ITEMS) all {
             // queue full, no-op and remove it
+            delivered' = delivered,
             queue' = queue
-        else
+        }
+        else all {
+            delivered' = delivered,
             queue' = queue.append(m)
+        }
     }
         
     action dequeue = {
-        if (isEmpty(queue))
+        if (isEmpty(queue)) all {
             // no-op
+            delivered' = delivered,
             queue' = queue
-        else
+        }
+        else all {
+            // When dequeing, message delivered
+            delivered' = delivered.append(head(queue)),
             // return head and remove it
             queue' = tail(queue)
+        }
     }
 
-    action init = {
+    action init = all {
         // At the initial state, all balances are zero
-        queue' = QUEUE
+        queue' = QUEUE,
+        delivered' = []
     }
 
     // action step = {

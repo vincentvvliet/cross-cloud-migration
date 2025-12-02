@@ -1,0 +1,51 @@
+  aws_sqs_fifo:
+    delivery:
+      type: "exactly_once"
+      scopedTo: "group"             # per message group id
+
+    ordering:
+      type: "fifo_group"
+      key: "MessageGroupId"
+
+    durability:
+      persistence: "multi_az"
+      replicationSync: "quorum_sync"
+      maxRetention:
+        type: "bounded"
+        duration: "14d"
+
+    acknowledgement:
+      pattern: "explicit_ack"
+      possibleRedelivery: false     # documented exactly-once per group under constraints
+      clientControlledOffset: false
+
+    visibility:
+      hasVisibilityTimeout: true
+      lockBehaviour: "lease"
+      redeliveryOnTimeout: true
+
+    partitioning:
+      model: "shards"
+      orderingScope: "group"
+      maxPartitions: "unbounded"
+      autoScaling: true
+
+    messageModel:
+      maxMessageSizeKB: 256
+      supportsBatching: true
+      supportsAttributes: true
+
+    transactions:
+      supportsTransactions: false
+      supportsExactlyOnceTx: false
+      crossEntityTransactions: false
+
+    failures:
+      crashLossPossible: false
+      duplicatePossible: false      # by contract, ignoring edge cases
+      reorderingPossible: false     # within a group
+
+    observability:
+      metricsExposed: true
+      deadLetterQueues: true
+      poisonMessageHandling: true

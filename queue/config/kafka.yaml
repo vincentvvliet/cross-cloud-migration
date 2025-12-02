@@ -1,0 +1,51 @@
+  kafka_partitioned_topic:
+    delivery:
+      type: "at_least_once"       # typical if consumers commit offsets after processing
+      scopedTo: "message"
+
+    ordering:
+      type: "fifo_partition"
+      key: "partitionKey"         # e.g. key used for partitioning
+
+    durability:
+      persistence: "disk_replicated"
+      replicationSync: "async"    # often async replication
+      maxRetention:
+        type: "bounded"           # retention.ms / log size
+        duration: "configurable"
+
+    acknowledgement:
+      pattern: "offset_commit"    # consumer commits offsets
+      possibleRedelivery: true    # if offsets not committed or reset
+      clientControlledOffset: true
+
+    visibility:
+      hasVisibilityTimeout: false
+      lockBehaviour: "offset_only"
+      redeliveryOnTimeout: false  # redelivery determined by offset mgmt
+
+    partitioning:
+      model: "partitions"
+      orderingScope: "partition"
+      maxPartitions: "unbounded"
+      autoScaling: true           # via partition scaling / re-balancing
+
+    messageModel:
+      maxMessageSizeKB: null      # configurable
+      supportsBatching: true
+      supportsAttributes: true    # headers, keys, etc.
+
+    transactions:
+      supportsTransactions: true         # producer transactions
+      supportsExactlyOnceTx: true        # idempotent producers + EOS
+      crossEntityTransactions: false     # usually within topic set
+
+    failures:
+      crashLossPossible: false           # for committed records under normal assumptions
+      duplicatePossible: true            # depending on producer/consumer config
+      reorderingPossible: false          # within a partition
+
+    observability:
+      metricsExposed: true
+      deadLetterQueues: false            # implemented at app level usually
+      poisonMessageHandling: false       # app-level

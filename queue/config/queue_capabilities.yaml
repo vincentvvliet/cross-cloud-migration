@@ -1,0 +1,69 @@
+# Describes the observable semantics of a queue-like system
+QueueCapabilities:
+  # 1. Delivery semantics
+  delivery:
+    type: string            # enum: ["at_most_once", "at_least_once", "exactly_once"]
+    scopedTo: string        # enum: ["message", "group", "partition", "stream"]
+                            # e.g. exactly_once per message group
+
+  # 2. Ordering semantics
+  ordering:
+    type: string            # enum: ["none", "best_effort", "fifo_global", "fifo_group", "fifo_partition"]
+    key: string | null      # field used to define group/partition (e.g. "messageGroupId", "partitionKey")
+
+  # 3. Durability & replication
+  durability:
+    persistence: string     # enum: ["memory_only", "disk_single_node", "disk_replicated", "multi_az", "multi_region"]
+    replicationSync: string # enum: ["none", "async", "quorum_sync", "full_sync"]
+    # How long messages can live if not consumed
+    maxRetention:
+      type: string          # enum: ["bounded", "unbounded"]
+      duration: string|null # e.g. "14d", "7d", null if unbounded
+
+  # 4. Acknowledgement / consumption model
+  acknowledgement:
+    pattern: string         # enum: ["delete_on_receive", "explicit_ack", "offset_commit", "transactional"]
+    # Whether messages may be re-delivered after a crash or timeout
+    possibleRedelivery: bool
+    # Whether client controls position (offset) separately from reading
+    clientControlledOffset: bool
+
+  # 5. Visibility / locking behaviour
+  visibility:
+    hasVisibilityTimeout: bool    # e.g. SQS-style
+    lockBehaviour: string         # enum: ["none", "peek_lock", "lease", "offset_only"]
+    redeliveryOnTimeout: bool     # messages return if not acked in time
+
+  # 6. Partitioning & scaling
+  partitioning:
+    model: string                 # enum: ["single", "partitions", "shards", "consumer_groups"]
+    # For partitioned systems
+    orderingScope: string         # enum: ["queue", "partition", "group"]
+    maxPartitions: string         # "bounded" | "unbounded" | numeric as string
+    autoScaling: bool
+
+  # 7. Size / message model (simplified)
+  messageModel:
+    maxMessageSizeKB: int | null  # null if abstract / not specified
+    supportsBatching: bool
+    supportsAttributes: bool      # metadata properties
+
+  # 8. Transactions & multi-resource semantics
+  transactions:
+    supportsTransactions: bool    # multi-message or multi-queue tx
+    supportsExactlyOnceTx: bool   # exactly-once within transactions
+    crossEntityTransactions: bool # tx across queues/topics or other resources
+
+  # 9. Failure semantics (high level)
+  failures:
+    # On crash of node/region, what can happen to enqueued but unacknowledged messages?
+    crashLossPossible: bool       # can acknowledged messages be lost under documented assumptions?
+    duplicatePossible: bool       # can duplicates appear across failures?
+    reorderingPossible: bool      # can messages be reordered vs enqueue time?
+
+  # 10. Misc / operational aspects (optional for now)
+  # You can expand these later if needed
+  observability:
+    metricsExposed: bool
+    deadLetterQueues: bool
+    poisonMessageHandling: bool

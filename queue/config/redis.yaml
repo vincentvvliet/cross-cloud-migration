@@ -1,0 +1,52 @@
+systems:
+  redis_list_queue:
+    delivery:
+      type: "at_most_once"
+      scopedTo: "message"
+
+    ordering:
+      type: "fifo_global"      # while alive, operations are FIFO
+      key: null
+
+    durability:
+      persistence: "memory_only"  # ignoring Redis persistence modes for now
+      replicationSync: "none"
+      maxRetention:
+        type: "unbounded"
+        duration: null
+
+    acknowledgement:
+      pattern: "delete_on_receive"   # RPOP removes the message
+      possibleRedelivery: false      # no built-in redelivery
+      clientControlledOffset: false
+
+    visibility:
+      hasVisibilityTimeout: false
+      lockBehaviour: "none"
+      redeliveryOnTimeout: false
+
+    partitioning:
+      model: "single"
+      orderingScope: "queue"
+      maxPartitions: "1"
+      autoScaling: false
+
+    messageModel:
+      maxMessageSizeKB: null
+      supportsBatching: false
+      supportsAttributes: false
+
+    transactions:
+      supportsTransactions: false
+      supportsExactlyOnceTx: false
+      crossEntityTransactions: false
+
+    failures:
+      crashLossPossible: true       # memory loss on crash
+      duplicatePossible: false
+      reorderingPossible: false     # within process lifetime
+
+    observability:
+      metricsExposed: false
+      deadLetterQueues: false
+      poisonMessageHandling: false

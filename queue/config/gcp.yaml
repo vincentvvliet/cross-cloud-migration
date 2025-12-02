@@ -1,0 +1,52 @@
+  gcp_pubsub:
+    delivery:
+      type: "at_least_once"
+      scopedTo: "message"
+
+    ordering:
+      type: "fifo_group"          # if ordering keys used, else "none"
+      key: "orderingKey"
+
+    durability:
+      persistence: "multi_region"
+      replicationSync: "quorum_sync"
+      maxRetention:
+        type: "bounded"
+        duration: "7d"            # example value
+
+    acknowledgement:
+      pattern: "explicit_ack"
+      possibleRedelivery: true
+      clientControlledOffset: false  # conceptually ack-based, not offsets
+
+    visibility:
+      hasVisibilityTimeout: true
+      lockBehaviour: "lease"
+      redeliveryOnTimeout: true
+
+    partitioning:
+      model: "consumer_groups"
+      orderingScope: "group"
+      maxPartitions: "unbounded"
+      autoScaling: true
+
+    messageModel:
+      maxMessageSizeKB: null
+      supportsBatching: true
+      supportsAttributes: true
+
+    transactions:
+      supportsTransactions: false
+      supportsExactlyOnceTx: false
+      crossEntityTransactions: false
+
+    failures:
+      crashLossPossible: false
+      duplicatePossible: true
+      reorderingPossible: true         # can be, depending on keys
+
+    observability:
+      metricsExposed: true
+      deadLetterQueues: true
+      poisonMessageHandling: true
+ 

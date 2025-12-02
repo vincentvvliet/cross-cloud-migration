@@ -1,3 +1,9 @@
+// TODO:
+// create subsystems that import shared actions and types from QueueBase
+// each subsystem has own defined step to support own actions
+// each subsystem has shared invariants + own invariants
+
+
 module QueueBase {
     // Abstract state
     type Message = int
@@ -34,15 +40,28 @@ module QueueBase {
         queue' = QUEUE
     }
 
-    action step = {
-        nondet m = 1.to(5).oneOf()
-        any {
-            enqueue(m),
-            dequeue
-        }
-    }
-        
+    // action step = {
+    //     nondet m = 1.to(5).oneOf()
+    //     any {
+    //         enqueue(m),
+    //         dequeue
+    //     }
+    // }    
+
     // Invariants
     val no_negative_size = length(queue) >= 0
     val max_size = length(queue) <= MAX_ITEMS
+
+    // action recover = {
+
+    // }
+
+    // action replicate = {
+        
+    // }
+
+    // Invariants todo:
+    // Safety -> no acknowledged message lost
+    // Safety -> Messages appear in FIFO order (if guarantees)
+    // Liveness -> every enqueued message can eventually be dequeued
 }

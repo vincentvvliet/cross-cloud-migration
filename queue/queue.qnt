@@ -5,7 +5,7 @@ module RedisQueue {
         nondet m = 1.to(10).oneOf()
         any {
             enqueue(m, "base"),
-            dequeue,
+            dequeue("base"),
         }
     }
 }

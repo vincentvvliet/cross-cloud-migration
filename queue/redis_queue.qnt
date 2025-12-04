@@ -7,11 +7,16 @@ module RedisQueue {
         delivered' = delivered
     }
 
+    // Peek: return head without dequeing. Since this does not update queue, no-op
+    action peek = {
+        queueUnchanged
+    }
+
     action step = {
         nondet m = 1.to(10).oneOf()
         any {
             enqueue(m, "redis"),
-            dequeue,
+            dequeue("redis"),
             crash
         }
     }

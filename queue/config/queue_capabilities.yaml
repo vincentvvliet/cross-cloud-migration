@@ -3,7 +3,6 @@ QueueCapabilities:
   delivery:
     type: string            # enum: ["at_most_once", "at_least_once", "exactly_once"]
     scopedTo: string        # enum: ["message", "group", "partition", "stream"]
-                            # e.g. exactly_once per message group
 
   # 2. Ordering semantics
   ordering:
@@ -14,7 +13,6 @@ QueueCapabilities:
   durability:
     persistence: string     # enum: ["memory_only", "disk_single_node", "disk_replicated", "multi_az", "multi_region"]
     replicationSync: string # enum: ["none", "async", "quorum_sync", "full_sync"]
-    # How long messages can live if not consumed
     maxRetention:
       type: string          # enum: ["bounded", "unbounded"]
       duration: string|null # e.g. "14d", "7d", null if unbounded
@@ -22,10 +20,8 @@ QueueCapabilities:
   # 4. Acknowledgement / consumption model
   acknowledgement:
     pattern: string         # enum: ["delete_on_receive", "explicit_ack", "offset_commit", "transactional"]
-    # Whether messages may be re-delivered after a crash or timeout
-    possibleRedelivery: bool
-    # Whether client controls position (offset) separately from reading
-    clientControlledOffset: bool
+    possibleRedelivery: bool # Whether messages may be re-delivered after a crash or timeout
+    clientControlledOffset: bool # Whether client controls position (offset) separately from reading
 
   # 5. Visibility / locking behaviour
   visibility:
@@ -36,7 +32,6 @@ QueueCapabilities:
   # 6. Partitioning & scaling
   partitioning:
     model: string                 # enum: ["single", "partitions", "shards", "consumer_groups"]
-    # For partitioned systems
     orderingScope: string         # enum: ["queue", "partition", "group"]
     maxPartitions: string         # "bounded" | "unbounded" | numeric as string
     autoScaling: bool
@@ -59,10 +54,3 @@ QueueCapabilities:
     crashLossPossible: bool       # can acknowledged messages be lost under documented assumptions?
     duplicatePossible: bool       # can duplicates appear across failures?
     reorderingPossible: bool      # can messages be reordered vs enqueue time?
-
-  # 10. Misc / operational aspects (optional for now)
-  # You can expand these later if needed
-  observability:
-    metricsExposed: bool
-    deadLetterQueues: bool
-    poisonMessageHandling: bool

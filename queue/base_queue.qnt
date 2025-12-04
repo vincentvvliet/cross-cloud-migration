@@ -13,6 +13,7 @@ module QueueBase {
     // Global variables
     pure val QUEUE = [1,2,3,4,5]
     pure val MAX_ITEMS = 5
+    pure val AT_MOST_DELIVERY: Set[str] = Set("redis") // TODO: append more systems
 
     // Helper functions
     def isEmpty(q: List[Message]): bool =
@@ -30,36 +31,36 @@ module QueueBase {
         queue' = queue
     }
 
-    action enqueue(m: Message, mode: str): bool = all {
+    action enqueue(m: Message, system: str): bool = all {
         if (length(queue) == MAX_ITEMS) 
-            // queue full, no-op and remove it
+            // Cannot enqueue, full 
             queueUnchanged
         else all {
-            // TODO: mode == "redis" and 
-            if (not (containsMessage(delivered, m))) all {
-                delivered' = delivered,
-                queue' = queue.append(m)
-            }   
-            else
-                queueUnchanged
+            delivered' = delivered,
+            queue' = queue.append(m)
         }
     }
         
-    action dequeue = {
+    action dequeue(system: str): bool = {
         if (isEmpty(queue)) all {
-            // no-op
-            delivered' = delivered,
-            queue' = queue
+            queueUnchanged
         }
-        else all {
-            if (not (containsMessage(delivered, head(queue)))) all {
-                // When dequeing, message delivered
+        else {
+            if (system.in(AT_MOST_DELIVERY)) { // TODO: update AT_MOST_DELIVERY via configs
+                if (not (containsMessage(delivered, head(queue)))) all {
+                    // When dequeing, message delivered
+                    delivered' = delivered.append(head(queue)),
+                    // remove head from queue
+                    queue' = tail(queue)
+                }
+                else all {
+                    delivered' = delivered,
+                    queue' = tail(queue)
+                }
+            } else all {
+                // Not at-most-delivery, normal dequeue
                 delivered' = delivered.append(head(queue)),
-                // return head and remove it
                 queue' = tail(queue)
-            }
-            else {
-                queueUnchanged
             }
         }
     }

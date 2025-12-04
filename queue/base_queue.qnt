@@ -14,19 +14,34 @@ module QueueBase {
     pure val QUEUE = [1,2,3,4,5]
     pure val MAX_ITEMS = 5
 
+    // Helper functions
     def isEmpty(q: List[Message]): bool =
         length(q) == 0
 
+    def convertToSet(list: List[Message]): Set[Message] = 
+        (list.foldl(Set(), (acc, x) => acc.union(Set(x))))
+
+    def containsMessage(list: List[Message], m: Message): bool = 
+        ((convertToSet(delivered)).contains(m))
+
     // Actions
-    action enqueue(m: Message): bool = all {
-        if (length(queue) == MAX_ITEMS) all {
+    action queueUnchanged = all {
+        delivered' = delivered,
+        queue' = queue
+    }
+
+    action enqueue(m: Message, mode: str): bool = all {
+        if (length(queue) == MAX_ITEMS) 
             // queue full, no-op and remove it
-            delivered' = delivered,
-            queue' = queue
-        }
+            queueUnchanged
         else all {
-            delivered' = delivered,
-            queue' = queue.append(m)
+            // TODO: mode == "redis" and 
+            if (not (containsMessage(delivered, m))) all {
+                delivered' = delivered,
+                queue' = queue.append(m)
+            }   
+            else
+                queueUnchanged
         }
     }
         
@@ -37,10 +52,15 @@ module QueueBase {
             queue' = queue
         }
         else all {
-            // When dequeing, message delivered
-            delivered' = delivered.append(head(queue)),
-            // return head and remove it
-            queue' = tail(queue)
+            if (not (containsMessage(delivered, head(queue)))) all {
+                // When dequeing, message delivered
+                delivered' = delivered.append(head(queue)),
+                // return head and remove it
+                queue' = tail(queue)
+            }
+            else {
+                queueUnchanged
+            }
         }
     }
 
@@ -49,14 +69,6 @@ module QueueBase {
         queue' = QUEUE,
         delivered' = []
     }
-
-    // action step = {
-    //     nondet m = 1.to(5).oneOf()
-    //     any {
-    //         enqueue(m),
-    //         dequeue
-    //     }
-    // }    
 
     // Invariants
     val no_negative_size = length(queue) >= 0

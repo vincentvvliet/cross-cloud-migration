@@ -4,7 +4,7 @@ module RedisQueue {
     action step = {
         nondet m = 1.to(10).oneOf()
         any {
-            enqueue(m),
+            enqueue(m, "base"),
             dequeue,
         }
     }

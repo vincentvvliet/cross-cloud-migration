@@ -1,0 +1,63 @@
+BigtableCapabilities:
+
+  consistency:
+    type: "strong"
+    tunable: false
+    linearizableReads: true         # within cluster
+    linearizableWrites: true
+    readMyWrites: true
+    monotonicReads: true
+    prefixReads: true
+
+  durability:
+    persistence: "disk_replicated"  # stored in Colossus/GFS2
+    replicationSync: "async"         # across clusters
+    writeAcknowledgement: "local_commit"
+
+  availability:
+    model: "leader_replication"
+    tolerantToRegionFailure: false     # single cluster
+    tolerantToNodeFailure: true
+
+  conflictResolution:
+    strategy: "none"                # no multi-master
+    deterministic: true
+    clientProvidedVersion: false
+
+  partitioning:
+    model: "range"
+    autoRebalancing: true
+    maxPartitions: "unbounded"
+    partitionKeyRequired: true
+
+  transactions:
+    supportsTransactions: false
+    isolationLevel: null
+    crossPartitionTransactions: false
+    crossRegionTransactions: false
+    conditionalWrites: true          # CheckAndMutate
+    atomicBatch: true                # per-row atomicity
+
+  caching:
+    readCache: true
+    writeBuffering: true
+    cacheConsistency: "strong"
+
+  performance:
+    latencyTier: "low_latency"
+    autoScaling: true
+
+  dataModel:
+    supportsTTL: true
+    supportsAttributes: true
+    maxItemSizeKB: null
+    maxValueSizeKB: null
+    schemaFlexibility: "wide_column"
+
+  failures:
+    crashLossPossible: false
+    staleReadsPossible: true         # if reading from replicated clusters
+    lostUpdatePossible: false        # per-row atomic writes
+    splitBrainPossible: false
+    reorderingPossible: false
+    inconsistencyWindow: "cluster_sync_delay"

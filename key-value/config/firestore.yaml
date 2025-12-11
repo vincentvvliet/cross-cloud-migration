@@ -1,0 +1,63 @@
+FirestoreCapabilities:
+
+  consistency:
+    type: "strong"
+    tunable: false
+    linearizableReads: true
+    linearizableWrites: true
+    readMyWrites: true
+    monotonicReads: true
+    prefixReads: true
+
+  durability:
+    persistence: "multi_region"
+    replicationSync: "full_sync"
+    writeAcknowledgement: "multi_region_commit"
+
+  availability:
+    model: "leader_replication"
+    tolerantToRegionFailure: true
+    tolerantToNodeFailure: true
+
+  conflictResolution:
+    strategy: "merge"               # per-field merge for multi-write
+    deterministic: true
+    clientProvidedVersion: true
+
+  partitioning:
+    model: "sharded"
+    autoRebalancing: true
+    maxPartitions: "unbounded"
+    partitionKeyRequired: false
+
+  transactions:
+    supportsTransactions: true
+    isolationLevel: "serializable"
+    crossPartitionTransactions: true
+    crossRegionTransactions: true
+    conditionalWrites: true
+    atomicBatch: true
+
+  caching:
+    readCache: true
+    writeBuffering: true
+    cacheConsistency: "strong"
+
+  performance:
+    latencyTier: "low_latency"
+    autoScaling: true
+
+  dataModel:
+    supportsTTL: true
+    supportsAttributes: true
+    maxItemSizeKB: 1024
+    maxValueSizeKB: 1024
+    schemaFlexibility: "kv_document"
+
+  failures:
+    crashLossPossible: false
+    staleReadsPossible: false
+    lostUpdatePossible: false
+    splitBrainPossible: false
+    reorderingPossible: false
+    inconsistencyWindow: null

@@ -1,0 +1,63 @@
+CassandraCapabilities:
+
+  consistency:
+    type: "tunable"                  # ONE, QUORUM, ALL
+    tunable: true
+    linearizableReads: false
+    linearizableWrites: false
+    readMyWrites: false
+    monotonicReads: false
+    prefixReads: true
+
+  durability:
+    persistence: "disk_replicated"
+    replicationSync: "async"
+    writeAcknowledgement: "local_commit"
+
+  availability:
+    model: "multi_master"
+    tolerantToRegionFailure: true
+    tolerantToNodeFailure: true
+
+  conflictResolution:
+    strategy: "last_write_wins"
+    deterministic: false              # timestamp-based → clock skew risk
+    clientProvidedVersion: false
+
+  partitioning:
+    model: "hashed"
+    autoRebalancing: true
+    maxPartitions: "unbounded"
+    partitionKeyRequired: true
+
+  transactions:
+    supportsTransactions: false       # no multi-key ACID transactions
+    isolationLevel: null
+    crossPartitionTransactions: false
+    crossRegionTransactions: false
+    conditionalWrites: true
+    atomicBatch: false
+
+  caching:
+    readCache: true
+    writeBuffering: true
+    cacheConsistency: "best_effort"
+
+  performance:
+    latencyTier: "high_throughput"
+    autoScaling: true
+
+  dataModel:
+    supportsTTL: true
+    supportsAttributes: true
+    maxItemSizeKB: null
+    maxValueSizeKB: null
+    schemaFlexibility: "wide_column"
+
+  failures:
+    crashLossPossible: true            # if replicas fail before repair
+    staleReadsPossible: true
+    lostUpdatePossible: true
+    splitBrainPossible: true
+    reorderingPossible: true
+    inconsistencyWindow: "repair_interval"

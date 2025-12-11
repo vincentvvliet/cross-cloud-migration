@@ -1,18 +1,63 @@
-Consistency:
-  Eventually consistent reads by default
-  Strongly consistent reads available (single-region only)
+DynamoDBCapabilities:
 
-Availability:
-  3-way replication within an AZ; multi-region Global Tables for global availability
+  consistency:
+    type: "eventual"                 # default
+    tunable: true                    # user may request strong reads
+    linearizableReads: false         # strong reads are not linearizable globally
+    linearizableWrites: false        # no global linearizability
+    readMyWrites: true               # within a region
+    monotonicReads: true
+    prefixReads: true                # DynamoDB does not return out-of-order writes
 
-Durability:
-  Multi-AZ synchronous replication
+  durability:
+    persistence: "multi_az"          # always replicated across 3 AZs
+    replicationSync: "quorum_sync"   # AZ replication
+    writeAcknowledgement: "quorum_commit"
 
-Ordering guarantees:
-  Conditional writes provide last-write-wins semantics; no global ordering
+  availability:
+    model: "multi_master"            # with Global Tables
+    tolerantToRegionFailure: true    # with Global Tables
+    tolerantToNodeFailure: true
 
-Transaction guarantees:
-  Optional serializable ACID transactions
+  conflictResolution:
+    strategy: "last_write_wins"      # timestamp-based for multi-region conflicts
+    deterministic: true
+    clientProvidedVersion: false     # version cannot be client-specified except conditional expressions
 
-Conflict resolution (multi-region):
-  Synchronous multi-master replication with timestamp-based conflict resolution (LWW)
+  partitioning:
+    model: "hashed"
+    autoRebalancing: true            # automatic partition split/merge
+    maxPartitions: "unbounded"
+    partitionKeyRequired: true
+
+  transactions:
+    supportsTransactions: true
+    isolationLevel: "serializable"        # DynamoDB transactions are serializable
+    crossPartitionTransactions: true      # yes, within same region
+    crossRegionTransactions: false        # not with Global Tables
+    conditionalWrites: true               # IF attribute_not_exists, etc.
+    atomicBatch: true                     # batch writes are atomic
+
+  caching:
+    readCache: false                      # DynamoDB itself has no cache; DAX is separate
+    writeBuffering: false
+    cacheConsistency: null
+
+  performance:
+    latencyTier: "high_throughput"        # not in-memory
+    autoScaling: true                     # for provisioned capacity
+
+  dataModel:
+    supportsTTL: true
+    supportsAttributes: true              # items can have many attributes
+    maxItemSizeKB: 400                    # hard AWS limit
+    maxValueSizeKB: 400
+    schemaFlexibility: "kv_document"      # document-like but fundamentally KV
+
+  failures:
+    crashLossPossible: false              # quorum replication prevents acknowledged write loss
+    staleReadsPossible: true              # eventual consistency and replication lag
+    lostUpdatePossible: true              # unless using conditional writes
+    splitBrainPossible: false             # avoided via strongly-coordinated multi-master
+    reorderingPossible: true              # cross-region replication is async
+    inconsistencyWindow: "region RTT"     # small delay until convergence between regions

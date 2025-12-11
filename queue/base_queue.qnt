@@ -1,19 +1,18 @@
-// TODO:
-// create subsystems that import shared actions and types from QueueBase
-// each subsystem has own defined step to support own actions
-// each subsystem has shared invariants + own invariants
-
-
 module QueueBase {
     // Abstract state
     type Message = int
     var queue: List[Message]
     var delivered: List[Message]
+    var pendingAck: Set[Message] // delivered but not yet acknowledged
+    var acked: Set[Message] // acknowledged deliveries
+
 
     // Global variables
     pure val QUEUE = [1,2,3,4,5]
     pure val MAX_ITEMS = 5
     pure val AT_MOST_DELIVERY: Set[str] = Set("redis") // TODO: append more systems
+    pure val EXACTLY_ONCE_DELIVERY: Set[str] = Set("kafka", "sqs_fifo") // TODO: append more systems
+    pure val AT_LEAST_ONCE_DELIVERY: Set[str] = Set("kafka", "sqs_fifo") // TODO: append more systems
 
     // Helper functions
     def isEmpty(q: List[Message]): bool =
@@ -65,6 +64,20 @@ module QueueBase {
         }
     }
 
+    action ack(m: Message): bool = {
+        if (m.in(pendingAck)) all {
+            pendingAck' = pendingAck.filter(x => x == m),
+            acked' = acked.union(Set(m)),
+            delivered' = delivered,
+            queue' = queue
+        }
+        else all {
+            pendingAck' = pendingAck,
+            acked' = acked,
+            queueUnchanged,
+        }
+    }
+
     action init = all {
         // At the initial state, all balances are zero
         queue' = QUEUE,
@@ -74,14 +87,6 @@ module QueueBase {
     // Invariants
     val no_negative_size = length(queue) >= 0
     val max_size = length(queue) <= MAX_ITEMS
-
-    // action recover = {
-
-    // }
-
-    // action replicate = {
-        
-    // }
 
     // Invariants todo:
     // Safety -> no acknowledged message lost

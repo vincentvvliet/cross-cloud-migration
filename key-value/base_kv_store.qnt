@@ -12,8 +12,16 @@ module KVStoreBase {
     pure val MAX_ITEMS = 5
 
     // Helper functions
-    pure def mapToSet(__map: Key -> Value): Set[(Key, Value)] = {
+    pure def mapToSet(__map: a -> b): Set[(a, b)] = {
         __map.keys().fold(Set(), (__acc, __k) => __acc.union(Set((__k, __map.get(__k)))))
+    }
+
+    pure def setRemove(s: Set[Key], elem: Key): Set[Key] = {
+        s.exclude(Set(elem))
+    }
+
+    pure def mapRemove(m: Key -> Value, key: Key): Key -> Value = {
+        m.keys().setRemove(key).mapBy(k => m.get(k))
     }
 
     // --- Actions ---
@@ -35,7 +43,7 @@ module KVStoreBase {
 
     action delete(k: Key): bool = {
         if (store.keys().contains(k)) all {
-            store' = mapToSet(store.set(k, -1)).exclude(Set((k, -1))).setToMap(),
+            store' = mapRemove(store, k),
             history' = history
         }
         else all {

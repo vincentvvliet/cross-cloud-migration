@@ -67,16 +67,6 @@ module KVStoreBase {
         }
     }
 
-    action step = {
-        nondet value = VALUES.oneOf()
-        nondet key = KEYS.oneOf()
-        any {
-            put_action(key, value),
-            get_action(key),
-            delete(key),
-        }
-    }
-
     // Invariants
     val no_negative_size = size(store.keys()) >= 0
     val max_size = size(store.keys()) <= MAX_ITEMS

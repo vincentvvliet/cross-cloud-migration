@@ -1,0 +1,18 @@
+Consistency:
+  Eventually consistent reads by default
+  Strongly consistent reads available (single-region only)
+
+Availability:
+  3-way replication within an AZ; multi-region Global Tables for global availability
+
+Durability:
+  Multi-AZ synchronous replication
+
+Ordering guarantees:
+  Conditional writes provide last-write-wins semantics; no global ordering
+
+Transaction guarantees:
+  Optional serializable ACID transactions
+
+Conflict resolution (multi-region):
+  Synchronous multi-master replication with timestamp-based conflict resolution (LWW)

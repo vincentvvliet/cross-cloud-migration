@@ -1,4 +1,7 @@
 module QueueBase {
+    import commonSpells.* from "../helper/commonSpells"
+    import basicSpells.* from "../helper/basicSpells"
+
     // Abstract state
     type Message = int
     var queue: List[Message]
@@ -23,11 +26,6 @@ module QueueBase {
 
     def containsMessage(list: List[Message], m: Message): bool = 
         ((convertToSet(delivered)).contains(m))
-
-    pure def listContains(__list: List[Message], __elem: Message): bool = 
-        __list.foldl(
-        false, 
-        (__acc, __i) => __acc or __i == __elem)
 
     // Actions
     action queueUnchanged = all {

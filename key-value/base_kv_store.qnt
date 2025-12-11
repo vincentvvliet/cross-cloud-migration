@@ -1,4 +1,7 @@
 module KVStoreBase {
+    import commonSpells.* from "../helper/commonSpells"
+    import basicSpells.* from "../helper/basicSpells"
+
     type Key = str
     type Value = int
 
@@ -10,19 +13,6 @@ module KVStoreBase {
     pure val VALUES: Set[Value] = 0.to(100)
 
     pure val MAX_ITEMS = 5
-
-    // Helper functions
-    pure def mapToSet(__map: a -> b): Set[(a, b)] = {
-        __map.keys().fold(Set(), (__acc, __k) => __acc.union(Set((__k, __map.get(__k)))))
-    }
-
-    pure def setRemove(s: Set[Key], elem: Key): Set[Key] = {
-        s.exclude(Set(elem))
-    }
-
-    pure def mapRemove(m: Key -> Value, key: Key): Key -> Value = {
-        m.keys().setRemove(key).mapBy(k => m.get(k))
-    }
 
     // --- Actions ---
     action put_action(k: Key, v: Value): bool = all {

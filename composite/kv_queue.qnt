@@ -123,11 +123,12 @@ module KV_Queue_Base {
     val no_negative_size = size(kv.keys()) >= 0
     val no_loss = inflight.subseteq(queue)
     val all_kv_from_queue = 
+        mapToSet(kv).forall(e => queue.exists(q => q.key == e._1 and q.value == e._2))
 
     val base_invariants = all {
         no_negative_size,
         no_loss, // TODO: check if necessary. Only works if queue allows redelivery (no deletion upon deliver)
-        
+        all_kv_from_queue,
         // TODO: more invariants
     }
 }

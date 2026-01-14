@@ -12,8 +12,6 @@ module KVStoreBase {
     pure val KEYS: Set[Key] = Set("a", "b", "c", "d", "e")
     pure val VALUES: Set[Value] = 0.to(100)
 
-    pure val MAX_ITEMS = 5
-
     // --- Actions ---
     action put_action(k: Key, v: Value): bool = all {
         if (KEYS.contains(k) and VALUES.contains(v))  all {
@@ -67,7 +65,7 @@ module KVStoreBase {
 
     // Invariants
     val no_negative_size = size(store.keys()) >= 0
-    val max_size = size(store.keys()) <= MAX_ITEMS
+    val max_size = size(store.keys()) <= KEYS.size()
 
     val keys_within_domain = store.keys().forall(k => KEYS.contains(k))
     val values_within_domain = store.keys().forall(k => VALUES.contains(store.get(k)))

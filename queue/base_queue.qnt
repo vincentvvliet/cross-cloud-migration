@@ -1,4 +1,7 @@
 module QueueBase {
+    import commonSpells.* from "../helper/commonSpells"
+    import basicSpells.* from "../helper/basicSpells"
+
     // Abstract state
     type Message = int
     var queue: List[Message]

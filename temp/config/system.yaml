@@ -1,0 +1,9 @@
+queue:
+  delivery: at_least_once
+  max_size: 100
+
+kv:
+  consistency: strong
+  conditional_writes: true
+  idempotent_writes: true
+  max_size: 1000

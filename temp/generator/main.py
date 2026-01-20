@@ -1,20 +1,34 @@
 from parse_config import parse_config
 from invariants import INVARIANTS
-from generate_quint import generate_quint
+from systems import load_systems
+from generate_invariants import generate_quint
+from generate_system import generate_system_qnt
 
-OUTPUT = "../quint/generated_invariants.qnt"
+from capabilities import SystemCaps, Delivery, Consistency
 
 def main():
-    caps = parse_config("../config/system.yaml")
+    caps = parse_config("config/config.yaml")
+    systems_db = load_systems("config/systems.json")
 
-    active = [i for i in INVARIANTS if i.condition(caps)]
+    c = caps['systems']
 
-    quint = generate_quint(active)
+    active_invariants = [i for i in INVARIANTS if i.condition(caps['systems'])]
 
-    with open(OUTPUT, "w") as f:
+    imports = [
+        systems_db[s]["import"]
+        for s in systems_db
+    ]
+
+    quint = generate_quint(active_invariants, imports)
+
+    with open("quint/generated/generated_invariants.qnt", "w") as f:
         f.write(quint)
 
-    print(f"Generated {len(active)} invariants")
+    print(f"Generated {len(active_invariants)} invariants")
+
+    generate_system_qnt(caps, systems_db, "quint/generated/system.qnt")
+
+    print(f"Generated system.qnt")
 
 if __name__ == "__main__":
     main()

@@ -2,9 +2,11 @@
 // AUTO-GENERATED — DO NOT EDIT
 
 module GeneratedInvariants {
-    import commonSpells.* from "../../helper/commonSpells"
-    import basicSpells.* from "../../helper/basicSpells"
-    import Base.* from "../../temp/quint/base"
+    import commonSpells.* from "/systems/common/commonSpells"
+    import basicSpells.* from "/systems/common/basicSpells"
+    import KVQueue.* from "/systems/compositions/kvQueue"
+    import SimpleKV.* from "/systems/kv/simpleKv"
+    import SimpleQueue.* from "/systems/queue/simpleQueue"
 
 val processed_from_queue = processed.forall(id => history.exists(m => m.id == id))
 

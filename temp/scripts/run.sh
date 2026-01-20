@@ -2,11 +2,9 @@
 set -euo pipefail
 
 echo "=== Generating invariants from YAML ==="
-cd generator
-python main.py
-cd ..
+python generator/main.py
 
 echo "=== Running Quint verification ==="
-quint run quint/system.qnt
+quint run quint/generated/system.qnt
 
 echo "=== Done ==="

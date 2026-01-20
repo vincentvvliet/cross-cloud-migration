@@ -1,28 +1,29 @@
 module System {
-    import Types.* from "systems/common/types"
-    import GeneratedInvariants.* from "generated/generated_invariants"
-    import SimpleQueue.* from "systems/queue/simpleQueue"
-    import SimpleKV.* from "systems/kv/simpleKv"
-    import KVQueue.* from "systems/compositions/kvQueue"
+    import Types.* from "../systems/common/types"
+    import GeneratedInvariants.* from "./generated_invariants"
+
+    import SimpleQueue.* from "../systems/queue/simpleQueue"
+    import SimpleKV.* from "../systems/kv/simpleKv"
+    import KVQueue.* from "../systems/compositions/kvQueue"
 
     // Unified Init
     action init = all {
         initQueue,
         initKV,
-        initComposition,
+        initComposition
     }
 
     action compositeEnqueue(m: Message): bool = all {
         enqueue(m),
         kv' = kv,
-        processed' = processed,
+        processed' = processed
     }
-    
     action compositeDeliver(m: Message): bool = all {
         deliver(m),
         kv' = kv,
-        processed' = processed,
+        processed' = processed
     }
+
 
     // Unified Step
     action step = {
@@ -35,20 +36,22 @@ module System {
         any {
             compositeEnqueue(input),
             compositeDeliver(getHead(queue)),
-            process(getHead(inflight)),
-            // ack(getHead(inflight)),
+            process(getHead(inflight))
         }
     }
 
-    // --------------------
-    // System Invariants
-    // --------------------
 
+    // Base Invariants
     val base_invariants = all {
         queue_invariants,
         kv_invariants,
-        composition_invariants,
-    }
+        composition_invariants,    
+    }   
 
-    val SystemCorrect = base_invariants and composition_specific_invariants and generated_invariants
+
+    // Full System Invariants
+    val SystemCorrect =
+        base_invariants and
+        composition_specific_invariants and
+        generated_invariants
 }

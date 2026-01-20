@@ -14,13 +14,13 @@ INVARIANTS = [
 
     Invariant(
         "processed_from_queue",
-        lambda c: c.queue.delivery == Delivery.AT_LEAST_ONCE,
+        lambda c: c['queue']['delivery'] == Delivery.AT_LEAST_ONCE.value,
         "processed.forall(id => history.exists(m => m.id == id))"
     ),
 
     Invariant(
         "all_kv_from_queue",
-        lambda c: c.kv.idempotent_writes,
+        lambda c: c['kv']['idempotent_writes'],
         """
         mapToSet(kv).forall(e =>
           history.exists(m =>
@@ -35,9 +35,12 @@ INVARIANTS = [
     Invariant(
         "exactly_once",
         lambda c:
-          c.queue.delivery == Delivery.AT_LEAST_ONCE and
-          c.kv.conditional_writes and
-          c.kv.consistency == Consistency.STRONG,
+          c['queue']['delivery'] in [
+              Delivery.AT_LEAST_ONCE.value,
+              Delivery.EXACTLY_ONCE.value
+          ] and
+          c['kv']['conditional_writes'] and
+          c['kv']['consistency'] == Consistency.STRONG.value,
         """
         history.forall(m =>
           processed.contains(m.id)

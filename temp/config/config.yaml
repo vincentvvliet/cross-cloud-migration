@@ -1,0 +1,14 @@
+composition:
+  name: KVQueue
+systems:
+  queue:
+    type: SimpleQueue
+    delivery: exactly_once
+    max_size: 10
+
+  kv:
+    type: SimpleKV
+    consistency: strong
+    conditional_writes: true
+    idempotent_writes: true
+    max_size: 10

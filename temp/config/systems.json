@@ -1,0 +1,27 @@
+{
+  "SimpleQueue": {
+    "import": "import SimpleQueue.* from \"../systems/queue/simpleQueue\"",
+    "state": ["queue", "inflight", "history"],
+    "actions": {
+      "enqueue": { "arity": 1, "composite": true, "input": "input"},
+      "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  }, 
+  
+  "SimpleKV": {
+    "import": "import SimpleKV.* from \"../systems/kv/simpleKv\"",
+    "state": ["kv"],
+    "actions": {},
+    "init": "initKV"
+  },
+
+  "KVQueue": {
+    "import": "import KVQueue.* from \"../systems/compositions/kvQueue\"",
+    "state": ["processed"],
+    "actions": {
+      "process": { "arity": 1, "composite": false, "input": "getHead(inflight)"}
+    },
+    "init": "initComposition"
+  }
+}

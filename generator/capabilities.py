@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import IntEnum, Enum
 
+
 class Delivery(IntEnum):
     AT_MOST_ONCE = 0
     AT_LEAST_ONCE = 1
@@ -14,14 +15,17 @@ class Delivery(IntEnum):
             "exactly_once": Delivery.EXACTLY_ONCE,
         }[s]
 
+
 class Consistency(Enum):
     STRONG = "strong"
     EVENTUAL = "eventual"
+
 
 @dataclass
 class QueueCaps:
     delivery: Delivery
     max_size: int
+
 
 @dataclass
 class KVCaps:
@@ -29,6 +33,7 @@ class KVCaps:
     conditional_writes: bool
     idempotent_writes: bool
     max_size: int
+
 
 @dataclass
 class SystemCaps:

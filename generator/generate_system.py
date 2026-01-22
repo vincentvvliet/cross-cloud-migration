@@ -2,11 +2,8 @@ def unchanged_assignments(all_state, owned_state):
     """
     Generate unchanged assignments for state variables not owned by the action.
     """
-    return [
-        f"{v}' = {v}"
-        for v in all_state
-        if v not in owned_state
-    ]
+    return [f"{v}' = {v}" for v in all_state if v not in owned_state]
+
 
 def generate_composite_action(name, arity, owned, all_state, composite):
     """
@@ -14,7 +11,7 @@ def generate_composite_action(name, arity, owned, all_state, composite):
     """
     if not composite:
         return ""
-        
+
     args = "m: Message" if arity == 1 else ""
     call = f"{name}(m)" if arity == 1 else f"{name}"
 
@@ -79,7 +76,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
     active = cfg["systems"]
 
     all_state = []
-    systems = [s['type'] for s in active.values()]
+    systems = [s["type"] for s in active.values()]
     systems.append(cfg["composition"]["name"])
 
     for s in systems:
@@ -115,14 +112,18 @@ def generate_system_qnt(cfg, systems_db, out_path):
             composite = systems_db[s]["actions"][act].get("composite", False)
             act_input = systems_db[s]["actions"][act]["input"]
 
-            actions.append({
-                "name": act,
-                "arity": arity,
-                "composite": composite,
-                "input": act_input,
-            })
+            actions.append(
+                {
+                    "name": act,
+                    "arity": arity,
+                    "composite": composite,
+                    "input": act_input,
+                }
+            )
 
-            lines.append(generate_composite_action(act, arity, state, all_state, composite))
+            lines.append(
+                generate_composite_action(act, arity, state, all_state, composite)
+            )
 
     # Step
     lines.append(generate_step(actions))
@@ -130,24 +131,28 @@ def generate_system_qnt(cfg, systems_db, out_path):
     # Base invariants
     system_keys = list(cfg["systems"].keys())
 
-    lines.append(f"""
+    lines.append(
+        f"""
     // Base Invariants
     val base_invariants = all {{
         {system_keys[0]}_invariants,
         {system_keys[1]}_invariants,
         composition_invariants,    
     }}   
-""")
+"""
+    )
 
     # Full invariants
-    lines.append("""
+    lines.append(
+        """
     // Full System Invariants
     val SystemCorrect =
         base_invariants and
         composition_specific_invariants and
         generated_invariants
 }
-""")
+"""
+    )
 
     with open(out_path, "w") as f:
         f.write("\n".join(lines))

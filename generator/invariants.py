@@ -55,7 +55,7 @@ INVARIANTS = [
         name="exactly_once",
         requires={
             "queue.delivery": Delivery.AT_LEAST_ONCE,
-            "kv.consistency": Consistency.STRONG.value,
+            "kv.consistency": Consistency.STRONG,
             "kv.conditional_writes": True,
         },
         quint="""

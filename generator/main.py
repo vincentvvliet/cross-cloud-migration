@@ -1,23 +1,16 @@
 from parse_config import parse_config
 from invariants import INVARIANTS, satisfies
-from systems import load_systems
+from load_systems import load_systems
 from generate_invariants import generate_quint
 from generate_system import generate_system_qnt
-
-from capabilities import SystemCaps, Delivery, Consistency
 
 
 def main():
     # TODO: enforce types when parsing config
     # TODO: enforce exactly 2 systems
+    # TODO: seperate systems from composite systems
     caps = parse_config("config/config.yaml")
     systems_db = load_systems("config/systems.json")
-
-    # TODO: seperate systems from composite systems
-
-    c = caps["systems"]
-
-    # active = [i for i in INVARIANTS if i.condition(caps['systems'])]
 
     active = [inv for inv in INVARIANTS if satisfies(caps["systems"], inv.requires)]
 

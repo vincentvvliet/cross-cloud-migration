@@ -16,9 +16,16 @@ class Delivery(IntEnum):
         }[s]
 
 
-class Consistency(Enum):
-    STRONG = "strong"
-    EVENTUAL = "eventual"
+class Consistency(IntEnum):
+    EVENTUAL = 0
+    STRONG = 1
+
+    @staticmethod
+    def from_str(s: str) -> "Consistency":
+        return {
+            "eventual": Consistency.EVENTUAL,
+            "strong": Consistency.STRONG,
+        }[s]
 
 
 @dataclass

@@ -14,7 +14,7 @@ INVARIANTS = [
 
     Invariant(
         "processed_from_queue",
-        lambda c: c['queue']['delivery'] == Delivery.AT_LEAST_ONCE.value,
+        lambda c: c['queue']['delivery'] >= Delivery.AT_LEAST_ONCE.value,
         "processed.forall(id => history.exists(m => m.id == id))"
     ),
 
@@ -33,19 +33,16 @@ INVARIANTS = [
     ),
 
     Invariant(
-        "exactly_once",
-        lambda c:
-          c['queue']['delivery'] in [
-              Delivery.AT_LEAST_ONCE.value,
-              Delivery.EXACTLY_ONCE.value
-          ] and
+      "exactly_once",
+      lambda c:
+          c['queue']['delivery'] >= Delivery.AT_LEAST_ONCE and
           c['kv']['conditional_writes'] and
           c['kv']['consistency'] == Consistency.STRONG.value,
-        """
-        history.forall(m =>
-          processed.contains(m.id)
-            iff kv.getOrElse(m.key, -1) == m.value
-        )
-        """
-    )
+      """
+      history.forall(m =>
+        processed.contains(m.id)
+          iff kv.getOrElse(m.key, -1) == m.value
+      )
+      """
+  )
 ]

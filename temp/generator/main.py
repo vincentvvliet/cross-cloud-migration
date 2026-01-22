@@ -10,6 +10,8 @@ def main():
     caps = parse_config("config/config.yaml")
     systems_db = load_systems("config/systems.json")
 
+    # TODO: seperate systems from composite systems
+
     c = caps['systems']
 
     active_invariants = [i for i in INVARIANTS if i.condition(caps['systems'])]

@@ -1,10 +1,18 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum, Enum
 
-class Delivery(Enum):
-    AT_MOST_ONCE = "at_most_once"
-    AT_LEAST_ONCE = "at_least_once"
-    EXACTLY_ONCE = "exactly_once"
+class Delivery(IntEnum):
+    AT_MOST_ONCE = 0
+    AT_LEAST_ONCE = 1
+    EXACTLY_ONCE = 2
+
+    @staticmethod
+    def from_str(s: str) -> "Delivery":
+        return {
+            "at_most_once": Delivery.AT_MOST_ONCE,
+            "at_least_once": Delivery.AT_LEAST_ONCE,
+            "exactly_once": Delivery.EXACTLY_ONCE,
+        }[s]
 
 class Consistency(Enum):
     STRONG = "strong"

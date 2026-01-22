@@ -7,7 +7,7 @@ Running the system works as follows:
     - systems: the two systems that make up the composition (including guarantees)
 - Run `scripts/run.sh`
 
-## Example config.yaml
+#### Example config.yaml
 ```
 composition:
   name: KVQueue

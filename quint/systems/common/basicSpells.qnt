@@ -4,6 +4,8 @@
  * One day they will become the standard library of Quint.
  */
 module basicSpells {
+  import Types.* from "./types"
+
   /// Option type, which may hold some value or none
   type Option[a] = Some(a) | None
 
@@ -369,5 +371,14 @@ module basicSpells {
   run setByWithDefaultTest = all {
     assert(setByWithDefault(Map(1 -> 2, 2 -> 3), 1, x => x + 1, 0) == Map(1 -> 3, 2 -> 3)),
     assert(setByWithDefault(Map(1 -> 2, 2 -> 3), 3, x => x + 1, 0) == Map(1 -> 2, 2 -> 3, 3 -> 1)),
+  }
+  
+  // Helpers
+  def convertToList(s: Set[a]): List[a] =
+      (s.fold([], (acc, x) => acc.append(x)))
+
+  def getHead(s: Set[Message]): Message = {
+      if (s.size() >= 1) convertToList(s).head()
+      else {id: -1, key: -1, value: -1}
   }
 }

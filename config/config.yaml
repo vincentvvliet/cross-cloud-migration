@@ -3,12 +3,12 @@ composition:
 systems:
   queue:
     type: BaseQueue
-    delivery: at_least_once
-    max_size: 10
+    delivery: at_most_once
+    max_size: 100
 
   kv:
     type: BaseKV
     consistency: strong
     conditional_writes: true
     idempotent_writes: true
-    max_size: 10
+    max_size: 100

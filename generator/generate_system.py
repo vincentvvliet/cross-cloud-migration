@@ -16,7 +16,7 @@ def generate_composite_action(name, arity, owned, all_state, composite):
         return ""
         
     args = "m: Message" if arity == 1 else ""
-    call = f"{name}(m)" if arity == 1 else f"{name}()"
+    call = f"{name}(m)" if arity == 1 else f"{name}"
 
     lines = []
     lines.append(f"    action composite{name.capitalize()}({args}): bool = all {{")
@@ -46,7 +46,7 @@ def generate_step(actions):
 
         # Decide arguments
         if act["arity"] == 0:
-            call = f"{fn}()"
+            call = f"{fn}"
         elif act["arity"] == 1:
             call = f"{fn}({act['input']})"
         else:
@@ -88,6 +88,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
     lines = []
     lines.append("module System {")
     lines.append('    import Types.* from "../systems/common/types"')
+    lines.append('    import basicSpells.* from "../systems/common/basicSpells"')
     lines.append('    import GeneratedInvariants.* from "./generated_invariants"')
     lines.append("")
 

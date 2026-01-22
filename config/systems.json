@@ -1,7 +1,7 @@
 {
   "BaseQueue": {
     "import": "import BaseQueue.* from \"../systems/queue/baseQueue\"",
-    "state": ["queue", "inflight", "history"],
+    "state": ["queue", "inflight", "history", "delivered"],
     "actions": {
       "enqueue": { "arity": 1, "composite": true, "input": "input"},
       "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"}
@@ -23,5 +23,16 @@
       "process": { "arity": 1, "composite": false, "input": "getHead(inflight)"}
     },
     "init": "initComposition"
+  },
+
+  "Redis": {
+    "import": "import Redis.* from \"../systems/queue/redis\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "actions": {
+      "enqueue": { "arity": 1, "composite": true, "input": "input"},
+      "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"},
+      "crash": { "arity": 0, "composite": true, "input": null}
+    },
+    "init": "initQueue"
   }
 }

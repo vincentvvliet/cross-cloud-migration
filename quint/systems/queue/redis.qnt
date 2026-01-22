@@ -1,11 +1,12 @@
 module Redis {
-    import BaseQueue.* from "../queue/baseQueue"
+    import BaseQueue.* from "baseQueue"
+    export BaseQueue.* 
 
     // Crash: Redis process dies, memory wiped
-    action crash = all {
+    action crash(): bool = all {
         queue' = Set(),
-        delivered' = delivered
+        history' = history,
+        inflight' = inflight,
+        delivered' = delivered,
     }
-
-    // TODO: Redis-specific logic
 }

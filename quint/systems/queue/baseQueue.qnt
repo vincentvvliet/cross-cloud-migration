@@ -11,14 +11,6 @@ module BaseQueue {
     var inflight: Set[Message]
     var delivered: Set[Message]
 
-    // Helpers
-    def convertToList(s: Set[a]): List[a] =
-        (s.fold([], (acc, x) => acc.append(x)))
-
-    def getHead(s: Set[Message]): Message = {
-        if (s.size() >= 1) convertToList(s).head()
-        else {id: -1, key: -1, value: -1}
-    }
 
     // Init
     action initQueue = all {

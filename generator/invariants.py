@@ -58,5 +58,15 @@ INVARIANTS = [
             )
         )
       """
+    ),
+
+    Invariant(
+      "crash_safety",
+      lambda c:
+          c['queue']['type'] != 'Redis',
+      """
+      // Crashes should not occur unless specified in the system model
+      history.size() == queue.size() + inflight.size() + processed.size()
+      """
     )
 ]

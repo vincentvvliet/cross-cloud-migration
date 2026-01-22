@@ -1,5 +1,6 @@
 module System {
     import Types.* from "../systems/common/types"
+    import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
     import BaseQueue.* from "../systems/queue/baseQueue"

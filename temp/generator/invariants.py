@@ -9,7 +9,7 @@ class Invariant:
         self.condition = condition
         self.quint = quint
 
-
+# TODO: add composition invariants from invariants/{composition}.py
 INVARIANTS = [
 
     Invariant(

@@ -2,6 +2,7 @@ import yaml
 from capabilities import Delivery
 
 def parse_config(path="config/config.yaml"):
+    """Parse the configuration YAML file and map delivery strings to enum values."""
     with open(path) as f:
         
         data = yaml.safe_load(f)
@@ -12,8 +13,8 @@ def parse_config(path="config/config.yaml"):
         return data
 
 def map_delivery(s: str) -> int:
+    """Map delivery string to Delivery enum value."""
     return Delivery.from_str(s).value
 
 if __name__ == "__main__":
     config = parse_config()
-    print(config)

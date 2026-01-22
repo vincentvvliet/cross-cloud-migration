@@ -1,4 +1,7 @@
 def unchanged_assignments(all_state, owned_state):
+    """
+    Generate unchanged assignments for state variables not owned by the action.
+    """
     return [
         f"{v}' = {v}"
         for v in all_state
@@ -6,6 +9,9 @@ def unchanged_assignments(all_state, owned_state):
     ]
 
 def generate_composite_action(name, arity, owned, all_state, composite):
+    """
+    Generate a composite action if specified.
+    """
     if not composite:
         return ""
         
@@ -26,6 +32,9 @@ def generate_composite_action(name, arity, owned, all_state, composite):
 
 
 def generate_step(actions):
+    """
+    Generate the unified step action that nondeterministically chooses one of the actions.
+    """
     calls = []
 
     for act in actions:
@@ -63,10 +72,11 @@ def generate_step(actions):
 """
 
 
-
 def generate_system_qnt(cfg, systems_db, out_path):
+    """
+    Generate the system QNT file based on the configuration and systems database.
+    """
     active = cfg["systems"]
-
 
     all_state = []
     systems = [s['type'] for s in active.values()]
@@ -116,7 +126,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
     # Step
     lines.append(generate_step(actions))
 
-    # TODO: base invariants
+    # Base invariants
     system_keys = list(cfg["systems"].keys())
 
     lines.append(f"""

@@ -7,6 +7,8 @@ from generate_system import generate_system_qnt
 from capabilities import SystemCaps, Delivery, Consistency
 
 def main():
+    # TODO: enforce types when parsing config
+    # TODO: enforce exactly 2 systems
     caps = parse_config("config/config.yaml")
     systems_db = load_systems("config/systems.json")
 

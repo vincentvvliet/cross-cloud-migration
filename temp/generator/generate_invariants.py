@@ -1,6 +1,9 @@
 from invariants import Invariant
 
 def generate_quint(invariants: List[Invariant], imports) -> str:
+    """
+    Generate the Quint module containing the given invariants.
+    """
     imports_block = "\n\t\t".join(imports)
 
     defs = "\n\n\t\t".join(

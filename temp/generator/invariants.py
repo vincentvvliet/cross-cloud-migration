@@ -44,5 +44,19 @@ INVARIANTS = [
           iff kv.getOrElse(m.key, -1) == m.value
       )
       """
-  )
+  ),
+
+    Invariant(
+      "at_most_once",
+      lambda c:
+          c['queue']['delivery'] == Delivery.AT_MOST_ONCE,
+      """
+      processed.forall(id =>
+            processed.forall(other_id =>
+                id == other_id or
+                history.filter(m => m.id == id).size() == 1
+            )
+        )
+      """
+    )
 ]

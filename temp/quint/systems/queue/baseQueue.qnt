@@ -48,6 +48,7 @@ module BaseQueue {
         history' = history,
     }
 
+    // TODO: check ack functionality. Add to systems.json as "ack": { "arity": 1, "composite": true, "input": "getHead(inflight)"}
     action ack(m: Message): bool = all {
         require(inflight.contains(m)),
 

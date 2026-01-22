@@ -8,9 +8,7 @@ module GeneratedInvariants {
 		import BaseKV.* from "../systems/kv/baseKV"
 		import KVQueue.* from "../systems/compositions/kvQueue"
 
-    val processed_from_queue = processed.forall(id => history.exists(m => m.id == id))
-
-		val all_kv_from_queue = mapToSet(kv).forall(e =>
+    val all_kv_from_queue = mapToSet(kv).forall(e =>
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
@@ -18,15 +16,16 @@ module GeneratedInvariants {
           )
         )
 
-		val exactly_once = history.forall(m =>
-        processed.contains(m.id)
-          iff kv.getOrElse(m.key, -1) == m.value
-      )
+		val at_most_once = processed.forall(id =>
+            processed.forall(other_id =>
+                id == other_id or
+                history.filter(m => m.id == id).size() == 1
+            )
+        )
 
     val generated_invariants = all {
-        processed_from_queue,
-				all_kv_from_queue,
-				exactly_once
+        all_kv_from_queue,
+				at_most_once
     }
 
 }

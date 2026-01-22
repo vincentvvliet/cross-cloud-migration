@@ -13,12 +13,12 @@ composition:
   name: KVQueue
 systems:
   queue:
-    type: SimpleQueue
+    type: BaseQueue
     delivery: exactly_once
     max_size: 10
 
   kv:
-    type: SimpleKV
+    type: BaseKV
     consistency: strong
     conditional_writes: true
     idempotent_writes: true

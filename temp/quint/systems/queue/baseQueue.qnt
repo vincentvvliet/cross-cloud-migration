@@ -1,4 +1,4 @@
-module SimpleQueue {
+module BaseQueue {
     import Types.* from "../common/types"
     import commonSpells.* from "../common/commonSpells"
     import basicSpells.* from "../common/basicSpells"

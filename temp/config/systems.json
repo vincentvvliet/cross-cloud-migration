@@ -1,6 +1,6 @@
 {
-  "SimpleQueue": {
-    "import": "import SimpleQueue.* from \"../systems/queue/simpleQueue\"",
+  "BaseQueue": {
+    "import": "import BaseQueue.* from \"../systems/queue/baseQueue\"",
     "state": ["queue", "inflight", "history"],
     "actions": {
       "enqueue": { "arity": 1, "composite": true, "input": "input"},
@@ -8,9 +8,9 @@
     },
     "init": "initQueue"
   }, 
-  
-  "SimpleKV": {
-    "import": "import SimpleKV.* from \"../systems/kv/simpleKv\"",
+
+  "BaseKV": {
+    "import": "import BaseKV.* from \"../systems/kv/baseKV\"",
     "state": ["kv"],
     "actions": {},
     "init": "initKV"

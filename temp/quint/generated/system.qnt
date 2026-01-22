@@ -2,8 +2,8 @@ module System {
     import Types.* from "../systems/common/types"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import SimpleQueue.* from "../systems/queue/simpleQueue"
-    import SimpleKV.* from "../systems/kv/simpleKv"
+    import BaseQueue.* from "../systems/queue/baseQueue"
+    import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
     // Unified Init

@@ -1,6 +1,6 @@
 module KVQueue {
-    import SimpleQueue.* from "../queue/simpleQueue"
-    import SimpleKV.* from "../kv/simpleKv"
+    import BaseQueue.* from "../queue/baseQueue"
+    import BaseKV.* from "../kv/baseKV"
     import Types.* from "../common/types"
     import commonSpells.* from "../common/commonSpells"
     import basicSpells.* from "../common/basicSpells"

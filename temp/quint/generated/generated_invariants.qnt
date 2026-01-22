@@ -4,11 +4,13 @@
 module GeneratedInvariants {
     import commonSpells.* from "../systems/common/commonSpells"
     import basicSpells.* from "../systems/common/basicSpells"
-    import SimpleQueue.* from "../systems/queue/simpleQueue"
-		import SimpleKV.* from "../systems/kv/simpleKv"
+    import BaseQueue.* from "../systems/queue/baseQueue"
+		import BaseKV.* from "../systems/kv/baseKV"
 		import KVQueue.* from "../systems/compositions/kvQueue"
 
-    val all_kv_from_queue = mapToSet(kv).forall(e =>
+    val processed_from_queue = processed.forall(id => history.exists(m => m.id == id))
+
+		val all_kv_from_queue = mapToSet(kv).forall(e =>
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
@@ -17,12 +19,13 @@ module GeneratedInvariants {
         )
 
 		val exactly_once = history.forall(m =>
-          processed.contains(m.id)
-            iff kv.getOrElse(m.key, -1) == m.value
-        )
+        processed.contains(m.id)
+          iff kv.getOrElse(m.key, -1) == m.value
+      )
 
     val generated_invariants = all {
-        all_kv_from_queue,
+        processed_from_queue,
+				all_kv_from_queue,
 				exactly_once
     }
 

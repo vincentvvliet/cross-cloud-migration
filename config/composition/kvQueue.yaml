@@ -3,7 +3,7 @@ composition:
 systems:
   queue:
     type: BaseQueue
-    delivery: at_most_once
+    delivery: at_least_once
     max_size: 10
 
   kv:

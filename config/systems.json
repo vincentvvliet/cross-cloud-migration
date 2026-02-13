@@ -11,7 +11,7 @@
 
   "BaseKV": {
     "import": "import BaseKV.* from \"../systems/kv/baseKV\"",
-    "state": ["kv"],
+    "state": ["kv", "lastWrite", "visibleReplicas"],
     "actions": {},
     "init": "initKV"
   },
@@ -20,7 +20,7 @@
     "import": "import KVQueue.* from \"../systems/compositions/kvQueue\"",
     "state": ["processed"],
     "actions": {
-      "process": { "arity": 1, "composite": false, "input": "getHead(inflight)"}
+      "process": { "arity": 1, "composite": false, "input": "getHead(inflight), replica"}
     },
     "init": "initComposition"
   },

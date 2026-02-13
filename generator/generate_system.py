@@ -59,8 +59,10 @@ def generate_step(actions):
         nondet id: int = VALUES.oneOf()
         nondet k: int = VALUES.oneOf()
         nondet v: int = VALUES.oneOf()
+        nondet client: int = CLIENTS.oneOf()
+        nondet replica: int = REPLICAS.oneOf()
 
-        val input: Message = {{id: id, key: k, value: v}}
+        val input: Message = {{id: id, key: k, value: v, client: client}}
 
         any {{
             {body}

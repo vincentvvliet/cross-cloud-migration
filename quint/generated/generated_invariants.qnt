@@ -11,7 +11,7 @@ module GeneratedInvariants {
 
     val processed_from_queue = processed.forall(id => history.exists(m => m.id == id))
 
-		val all_kv_from_queue = mapToSet(kv).forall(e =>
+		val all_kv_from_queue = mapToSet(kv_flat).forall(e =>
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
@@ -21,7 +21,7 @@ module GeneratedInvariants {
 
 		val exactly_once = history.forall(m =>
           processed.contains(m.id)
-            iff kv.getOrElse(m.key, -1) == m.value
+            iff kv_flat.getOrElse(m.key, -1) == m.value
         )
 
 		val at_most_once = processed.forall(id =>

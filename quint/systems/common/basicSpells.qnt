@@ -379,6 +379,6 @@ module basicSpells {
 
   def getHead(s: Set[Message]): Message = {
       if (s.size() >= 1) convertToList(s).head()
-      else {id: -1, key: -1, value: -1}
+      else {id: -1, key: -1, value: -1, client: -1}
   }
 }

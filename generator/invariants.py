@@ -42,7 +42,7 @@ INVARIANTS = [
         name="all_kv_from_queue",
         requires={"kv.idempotent_writes": True},
         quint="""
-        mapToSet(kv).forall(e =>
+        mapToSet(kv_flat).forall(e =>
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
@@ -61,7 +61,7 @@ INVARIANTS = [
         quint="""
         history.forall(m =>
           processed.contains(m.id)
-            iff kv.getOrElse(m.key, -1) == m.value
+            iff kv_flat.getOrElse(m.key, -1) == m.value
         )
         """,
     ),

@@ -20,20 +20,29 @@ module KVQueue {
         processed' = processed,
         delivered' = delivered,
         history' = history,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
     }
 
     // Consumer Logic
-    action process(m: Message): bool = all {
+    action process(m: Message, r: Replica): bool = all {
         require(m.in(inflight)),
+        require(r.in(kv.keys())),
 
         if (not(processed.contains(m.id))) all {
             // apply effect exactly once
-            kv' = kv.put(m.key, m.value),
+            kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
             processed' = processed.union(Set(m.id)),
             inflight' = setRemove(inflight, m),
             queue' = queue,
             delivered' = delivered,
             history' = history,
+            visibleReplicas' = visibleReplicas,
+            lastWrite' = lastWrite.put(
+                m.client, 
+                lastWrite.get(m.client).put(m.key, m.value)
+            ),
+            
         } else all {
             // duplicate delivery
             allUnchanged

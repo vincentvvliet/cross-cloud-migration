@@ -17,11 +17,15 @@ module System {
     action compositeEnqueue(m: Message): bool = all {
         enqueue(m),
         kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
         processed' = processed
     }
     action compositeDeliver(m: Message): bool = all {
         deliver(m),
         kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
         processed' = processed
     }
 
@@ -31,13 +35,15 @@ module System {
         nondet id: int = VALUES.oneOf()
         nondet k: int = VALUES.oneOf()
         nondet v: int = VALUES.oneOf()
+        nondet client: int = CLIENTS.oneOf()
+        nondet replica: int = REPLICAS.oneOf()
 
-        val input: Message = {id: id, key: k, value: v}
+        val input: Message = {id: id, key: k, value: v, client: client}
 
         any {
             compositeEnqueue(input),
             compositeDeliver(getHead(queue)),
-            process(getHead(inflight))
+            process(getHead(inflight), replica)
         }
     }
 

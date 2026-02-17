@@ -10,7 +10,7 @@ module BaseKV {
     // KV State
     var kv: Replica -> (int -> int)        // per-replica key-value maps
     var lastWrite: Client -> (int -> int)  // client’s most recent writes
-    var visibleReplicas: Client -> Set[Replica]
+    var visibleReplicas: Client -> Set[Replica] // TODO: handle visibility of replicas to clients
 
     // kv[r] is replica r’s local state
     // lastWrite[c][k] = v means client c last wrote (k,v)
@@ -19,30 +19,48 @@ module BaseKV {
 
     // Init
     action initKV = all {
-        kv' = Map(-1 -> Set().setToMap()),
-        lastWrite' = Map(-1 -> Set().setToMap()),
-        visibleReplicas' = Map(-1 -> Set())
+        // Each replica starts with empty key-value map
+        kv' = REPLICAS.map(r => (r, Set().setToMap())).setToMap(),
+        
+        // Each client starts with empty lastWrite map
+        lastWrite' = CLIENTS.map(c => (c, Set().setToMap())).setToMap(),
+
+        // Each client initially can see all replicas
+        visibleReplicas' = CLIENTS.map(c => (c, REPLICAS)).setToMap()
     }
 
-    // TODO: check old actions
     // --- Actions ---
-    action write(c: Client, k: int, v: int, r: Replica): bool = all {
-        kv' = kv.put(r, kv.get(r).put(k, v)),
-        lastWrite' = lastWrite.put(c, lastWrite.get(c).put(k, v)),
+    action write(m: Message, r: Replica): bool = all {
+        require(r.in(kv.keys())),
+        kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
+        lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).put(m.key, m.value)),
         visibleReplicas' = visibleReplicas
     }
 
     // Does not change state, but models a read operation that returns a value
-    action read(c: Client, k: int, r: Replica, out: int): bool = all {
-        require(r.in(visibleReplicas.get(c))),
+    action read(m: Message, r: Replica, out: int): bool = all {
+        require(r.in(visibleReplicas.get(m.client))),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
-        // out = kv[r].getOrElse(k, -1),
+        // out = kv.get(r).getOrElse(m.key, -1),
     }
 
-    action replicate(src: Replica, dst: Replica, k: int): bool = all {
-        kv' = kv.put(dst, kv.get(dst).put(k, kv.get(src).getOrElse(k, -1))),
+    // Sync replicas for specified key
+    // action sync(m: Message, src: Replica, dst: Replica): bool = all {
+    //     require(src.in(kv.keys()) and dst.in(kv.keys())),
+    //     require(m.key.in(kv.get(src).keys())),
+    //     kv' = kv.put(dst, kv.get(dst).put(m.key, kv.get(src).get(m.key))),
+    //     lastWrite' = lastWrite,
+    //     visibleReplicas' = visibleReplicas,
+    // }
+
+    action sync(src: Replica, dst: Replica): bool = all {
+        require(src.in(kv.keys()) and dst.in(kv.keys())),
+        // Note: this is a simple sync that only copies over keys that are not already present at dst. More complex syncs could involve conflict resolution, timestamps, etc.
+        kv' = kv.get(src).keys()
+            .filter(k => not (k.in(kv.get(dst).keys()))) // Only get keys not already in dst to avoid overwriting at dst
+            .fold(kv, (acc, k) => acc.put(dst, acc.get(dst).put(k, kv.get(src).get(k)))), 
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
     }
@@ -51,7 +69,7 @@ module BaseKV {
     // TODO: refactor
     // pure def kvView: int -> int = kv.get(REPLICAS.convertToList().head())
 
-    val kv_flat = kv.get(REPLICAS.convertToList().head())
+    val kv_flat: int -> int = kv.get(REPLICAS.convertToList().head())
 
     // KV Invariants
     val kv_no_negative_size =

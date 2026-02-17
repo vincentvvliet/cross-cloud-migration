@@ -12,8 +12,28 @@ def generate_composite_action(name, arity, owned, all_state, composite):
     if not composite:
         return ""
 
-    args = "m: Message" if arity == 1 else ""
-    call = f"{name}(m)" if arity == 1 else f"{name}"
+    # TODO: refactor below
+    args = (
+        "m: Message"
+        if arity == 1
+        else (
+            "m: Message, r: Replica"
+            if arity == 2
+            else "m: Message, r1: Replica, r2: Replica" if arity == 3 else ""
+        )
+    )
+
+    call = (
+        f"{name}(m)"
+        if arity == 1
+        else (
+            f"{name}(m, r)"
+            if arity == 2
+            else (
+                f"{name}(r1, r2)" if arity == 3 else f"{name}"
+            )  # TODO: clean up the call for arity 3 (sync)
+        )
+    )
 
     lines = []
     lines.append(f"    action composite{name.capitalize()}({args}): bool = all {{")
@@ -44,7 +64,7 @@ def generate_step(actions):
         # Decide arguments
         if act["arity"] == 0:
             call = f"{fn}"
-        elif act["arity"] == 1:
+        elif 1 <= act["arity"] <= 3:
             call = f"{fn}({act['input']})"
         else:
             raise ValueError(f"Unsupported arity: {act['arity']}")
@@ -61,6 +81,7 @@ def generate_step(actions):
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
+        nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()
 
         val input: Message = {{id: id, key: k, value: v, client: client}}
 

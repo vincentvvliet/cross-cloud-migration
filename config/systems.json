@@ -12,7 +12,10 @@
   "BaseKV": {
     "import": "import BaseKV.* from \"../systems/kv/baseKV\"",
     "state": ["kv", "lastWrite", "visibleReplicas"],
-    "actions": {},
+    "actions": {
+      "write": { "arity": 2, "composite": true, "input": "input, replica"},
+      "sync": { "arity": 3, "composite": true, "input": "input, replica, dst"}
+    },
     "init": "initKV"
   },
 

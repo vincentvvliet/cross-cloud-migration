@@ -4,8 +4,8 @@
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue",
     "actions": {
-      "enqueue": { "arity": 1, "composite": true, "input": "input"},
-      "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"}
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
     },
     "init": "initQueue"
   }, 
@@ -15,7 +15,7 @@
     "state": ["kv", "lastWrite", "visibleReplicas"],
     "type": "kv",
     "actions": {
-      "sync": { "arity": 3, "composite": true, "input": "input, replica, dst"}
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
     },
     "init": "initKV"
   },
@@ -25,7 +25,7 @@
     "state": ["processed"],
     "type": "composition",
     "actions": {
-      "process": { "arity": 1, "composite": false, "input": "getHead(inflight), replica"}
+      "process": { "arg_type": "msg_replica", "composite": false, "input": "getHead(inflight), replica"}
     },
     "init": "initComposition"
   },
@@ -35,9 +35,9 @@
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue",
     "actions": {
-      "enqueue": { "arity": 1, "composite": true, "input": "input"},
-      "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"},
-      "crash": { "arity": 0, "composite": true, "input": null}
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "crash": { "arg_type": "crash", "composite": true, "input": null}
     },
     "init": "initQueue"
   }

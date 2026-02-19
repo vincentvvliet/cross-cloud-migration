@@ -36,13 +36,13 @@ To test singular system, call `quint run {system}.qnt --invariants {invariants}`
     - actions (object): the actions of the system. Actions are defined as follows:
         `
         {
-            arity (int): number of inputs,
+            arg_type (str): type of arguments, see `generator/function_signature.py`,
             composite (bool): whether a composite version of an action needs to be made. This is dependant on whether all system variables are used or not in the original function.
             input (str): name of input
         }
         ` 
             
-        E.G `"deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"}`
+        E.G `"deliver": { "arg_type": "msg, "composite": true, "input": "getHead(queue)"}`
     - init (str): name of `init` function in system 
 - Define capabilities in `generator/capabilities.py`
 - State system capabilities in `config/config.yaml`

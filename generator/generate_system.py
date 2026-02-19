@@ -1,3 +1,5 @@
+from function_signature import SIGNATURES
+
 replicas = False
 
 
@@ -8,27 +10,16 @@ def unchanged_assignments(all_state, owned_state):
     return [f"{v}' = {v}" for v in all_state if v not in owned_state]
 
 
-def generate_composite_action(name, arity, owned, all_state, composite):
+def generate_composite_action(name, arg_type, owned, all_state, composite):
     """
     Generate a composite action if specified.
     """
     if not composite:
         return ""
 
-    ARGUMENTS = {
-        1: "m: Message",
-        2: "m: Message, r: Replica",
-        3: "r1: Replica, r2: Replica",  # TODO: generalize beyond replicas
-    }
-
-    CALLS = {
-        1: lambda name: f"{name}(m)",
-        2: lambda name: f"{name}(m, r)",
-        3: lambda name: f"{name}(r1, r2)",
-    }
-
-    args = ARGUMENTS.get(arity, "")
-    call = CALLS.get(arity, lambda name: name)(name)
+    signature = SIGNATURES[arg_type]  # e.g. "msg_replica" or "sync"
+    args = signature.args
+    call = signature.call(name)
 
     lines = []
     lines.append(f"    action composite{name.capitalize()}({args}): bool = all {{")
@@ -57,12 +48,13 @@ def generate_step(actions):
             fn = act["name"]
 
         # Decide arguments
-        if act["arity"] == 0:
-            call = f"{fn}"
-        elif 1 <= act["arity"] <= 3:
-            call = f"{fn}({act['input']})"
+        if act["arg_type"] in SIGNATURES:
+            if act["arg_type"] == "crash":
+                call = f"{fn}"
+            else:
+                call = f"{fn}({act['input']})"
         else:
-            raise ValueError(f"Unsupported arity: {act['arity']}")
+            raise ValueError(f"Unsupported arg_type: {act['arg_type']}")
 
         calls.append(call)
 
@@ -151,7 +143,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
         for act in systems_db[s]["actions"]:
             # TODO: refactor below as one-liner function
             state = systems_db[s]["state"]
-            arity = systems_db[s]["actions"][act]["arity"]
+            arg_type = systems_db[s]["actions"][act]["arg_type"]
             composite = systems_db[s]["actions"][act].get("composite", False)
             act_input = systems_db[s]["actions"][act]["input"]
 
@@ -162,14 +154,14 @@ def generate_system_qnt(cfg, systems_db, out_path):
             actions.append(
                 {
                     "name": act,
-                    "arity": arity,
+                    "arg_type": arg_type,
                     "composite": composite,
                     "input": act_input,
                 }
             )
 
             lines.append(
-                generate_composite_action(act, arity, state, all_state, composite)
+                generate_composite_action(act, arg_type, state, all_state, composite)
             )
 
     # Step

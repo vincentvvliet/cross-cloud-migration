@@ -28,14 +28,6 @@ module System {
         visibleReplicas' = visibleReplicas,
         processed' = processed
     }
-    action compositeSync(m: Message, r1: Replica, r2: Replica): bool = all {
-        sync(r1, r2),
-        queue' = queue,
-        inflight' = inflight,
-        history' = history,
-        delivered' = delivered,
-        processed' = processed
-    }
 
 
     // Unified Step
@@ -45,14 +37,12 @@ module System {
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
-        nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()
-
+        
         val input: Message = {id: id, key: k, value: v, client: client}
 
         any {
             compositeEnqueue(input),
             compositeDeliver(getHead(queue)),
-            compositeSync(input, replica, dst),
             process(getHead(inflight), replica)
         }
     }

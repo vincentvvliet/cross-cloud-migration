@@ -1,7 +1,7 @@
 from invariants import Invariant
 
 
-def generate_quint(invariants: List[Invariant], imports) -> str:
+def generate_invariants_quint(invariants: List[Invariant], imports) -> str:
     """
     Generate the Quint module containing the given invariants.
     """

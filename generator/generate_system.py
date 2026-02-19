@@ -1,3 +1,6 @@
+replicas = False
+
+
 def unchanged_assignments(all_state, owned_state):
     """
     Generate unchanged assignments for state variables not owned by the action.
@@ -81,8 +84,7 @@ def generate_step(actions):
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
-        nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()
-
+        {"nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()\n" if replicas else ""}
         val input: Message = {{id: id, key: k, value: v, client: client}}
 
         any {{
@@ -92,11 +94,41 @@ def generate_step(actions):
 """
 
 
+def handleReplicasQuint(replicas: bool):
+    """
+    Handle the case where replicas are used in the system.
+    """
+    with open("quint/systems/common/types.qnt", "r") as f:
+        lines = f.readlines()
+
+    # TODO: refactor below
+    for i, line in enumerate(lines):
+        if line.startswith("    pure val REPLICAS: Set[int]"):
+            if replicas:
+                lines[i] = "    pure val REPLICAS: Set[int] = 1.to(2)\n"
+            else:
+                lines[i] = "    pure val REPLICAS: Set[int] = Set(1)\n"
+        elif line.startswith("    pure val CLIENTS: Set[int]"):
+            if replicas:
+                lines[i] = "    pure val CLIENTS: Set[int] = 1.to(2)\n"
+            else:
+                lines[i] = "    pure val CLIENTS: Set[int] = Set(1)\n"
+
+    with open("quint/systems/common/types.qnt", "w") as f:
+        f.writelines(lines)
+        f.close()
+
+
 def generate_system_qnt(cfg, systems_db, out_path):
+    global replicas
     """
     Generate the system QNT file based on the configuration and systems database.
     """
     active = cfg["systems"]
+
+    # Use of replicas
+    replicas = cfg["systems"]["kv"]["replicas"]
+    handleReplicasQuint(replicas)
 
     all_state = []
     systems = [s["type"] for s in active.values()]
@@ -134,6 +166,10 @@ def generate_system_qnt(cfg, systems_db, out_path):
             arity = systems_db[s]["actions"][act]["arity"]
             composite = systems_db[s]["actions"][act].get("composite", False)
             act_input = systems_db[s]["actions"][act]["input"]
+
+            if act == "sync" and not replicas:
+                # Do not allow sync action if replicas are not used
+                continue
 
             actions.append(
                 {

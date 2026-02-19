@@ -69,7 +69,7 @@ module BaseKV {
     // TODO: decide how to define kvView in the presence of multiple replicas. For now, we just take the view of one replica (the first one in the set of replicas).
     val kv_view: int -> int =
         // Convert each inner map to a set of (key, value) pairs, then flatten
-        kv.values().map(v => v.mapToSet()).flatten().setToMap()
+        kv.values().map(v => v.mapToSet()).flatten().setToMap() 
 
     // KV Invariants
     val kv_no_negative_size =

@@ -39,6 +39,7 @@ class KVCaps:
     consistency: Consistency
     conditional_writes: bool
     idempotent_writes: bool
+    replicas: bool
     max_size: int
 
 

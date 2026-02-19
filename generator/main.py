@@ -1,7 +1,7 @@
 from parse_config import parse_config
 from invariants import INVARIANTS, satisfies
 from load_systems import load_systems, import_systems
-from generate_invariants import generate_quint
+from generate_invariants import generate_invariants_quint
 from generate_system import generate_system_qnt
 
 
@@ -17,7 +17,7 @@ def main():
 
     imports = [systems_db[s]["import"] for s in systems_db]
 
-    quint = generate_quint(active, imports)
+    quint = generate_invariants_quint(active, imports)
 
     with open("quint/generated/generated_invariants.qnt", "w") as f:
         f.write(quint)

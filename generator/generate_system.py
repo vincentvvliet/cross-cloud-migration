@@ -15,28 +15,20 @@ def generate_composite_action(name, arity, owned, all_state, composite):
     if not composite:
         return ""
 
-    # TODO: refactor below
-    args = (
-        "m: Message"
-        if arity == 1
-        else (
-            "m: Message, r: Replica"
-            if arity == 2
-            else "m: Message, r1: Replica, r2: Replica" if arity == 3 else ""
-        )
-    )
+    ARGUMENTS = {
+        1: "m: Message",
+        2: "m: Message, r: Replica",
+        3: "r1: Replica, r2: Replica",  # TODO: generalize beyond replicas
+    }
 
-    call = (
-        f"{name}(m)"
-        if arity == 1
-        else (
-            f"{name}(m, r)"
-            if arity == 2
-            else (
-                f"{name}(r1, r2)" if arity == 3 else f"{name}"
-            )  # TODO: clean up the call for arity 3 (sync)
-        )
-    )
+    CALLS = {
+        1: lambda name: f"{name}(m)",
+        2: lambda name: f"{name}(m, r)",
+        3: lambda name: f"{name}(r1, r2)",
+    }
+
+    args = ARGUMENTS.get(arity, "")
+    call = CALLS.get(arity, lambda name: name)(name)
 
     lines = []
     lines.append(f"    action composite{name.capitalize()}({args}): bool = all {{")
@@ -101,19 +93,15 @@ def handleReplicasQuint(replicas: bool):
     with open("quint/systems/common/types.qnt", "r") as f:
         lines = f.readlines()
 
-    # TODO: refactor below
     for i, line in enumerate(lines):
         if line.startswith("    pure val REPLICAS: Set[int]"):
-            if replicas:
-                lines[i] = "    pure val REPLICAS: Set[int] = 1.to(2)\n"
-            else:
-                lines[i] = "    pure val REPLICAS: Set[int] = Set(1)\n"
+            lines[i] = (
+                f"    pure val REPLICAS: Set[int] = {"1.to(2)" if replicas else "Set(1)"}\n"
+            )
         elif line.startswith("    pure val CLIENTS: Set[int]"):
-            if replicas:
-                lines[i] = "    pure val CLIENTS: Set[int] = 1.to(2)\n"
-            else:
-                lines[i] = "    pure val CLIENTS: Set[int] = Set(1)\n"
-
+            lines[i] = (
+                f"    pure val CLIENTS: Set[int] = {"1.to(2)" if replicas else "Set(1)"}\n"
+            )
     with open("quint/systems/common/types.qnt", "w") as f:
         f.writelines(lines)
         f.close()

@@ -2,6 +2,7 @@
   "BaseQueue": {
     "import": "import BaseQueue.* from \"../systems/queue/baseQueue\"",
     "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
     "actions": {
       "enqueue": { "arity": 1, "composite": true, "input": "input"},
       "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"}
@@ -12,6 +13,7 @@
   "BaseKV": {
     "import": "import BaseKV.* from \"../systems/kv/baseKV\"",
     "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
     "actions": {
       "sync": { "arity": 3, "composite": true, "input": "input, replica, dst"}
     },
@@ -21,6 +23,7 @@
   "KVQueue": {
     "import": "import KVQueue.* from \"../systems/compositions/kvQueue\"",
     "state": ["processed"],
+    "type": "composition",
     "actions": {
       "process": { "arity": 1, "composite": false, "input": "getHead(inflight), replica"}
     },
@@ -30,6 +33,7 @@
   "Redis": {
     "import": "import Redis.* from \"../systems/queue/redis\"",
     "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
     "actions": {
       "enqueue": { "arity": 1, "composite": true, "input": "input"},
       "deliver": { "arity": 1, "composite": true, "input": "getHead(queue)"},

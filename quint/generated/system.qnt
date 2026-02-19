@@ -62,15 +62,13 @@ module System {
     val base_invariants = all {
         queue_invariants,
         kv_invariants,
-        composition_invariants,
+        composition_invariants,    
     }   
 
 
     // Full System Invariants
     val SystemCorrect =
-        base_invariants 
-        // and
-        // composition_specific_invariants // TODO: fails
-        // and
-        // generated_invariants // TODO: fails
+        base_invariants and
+        composition_specific_invariants and
+        generated_invariants
 }

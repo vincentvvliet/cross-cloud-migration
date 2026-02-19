@@ -54,9 +54,7 @@ module KVQueue {
     // --------------------
 
     // KV writes are caused by processed messages
-    val kv_size_bounded =
-        // Get unique values (handles synced replicas)
-        kv.values().fold(Set(), (acc, v) => acc.union(v.keys())).size() <= size(processed)
+    val kv_size_bounded = kv_view.keys().size() <= size(processed)
 
     // At-least-once safety: deduplication works
     val no_double_processing =
@@ -72,7 +70,7 @@ module KVQueue {
 
     // Eventual consistency-style causality
     val kv_values_eventually_from_processed =
-        kv_flat.keys().forall(k =>
+        kv_view.keys().forall(k =>
             processed.exists(id =>
                 history.exists(m =>
                     m.id == id and m.key == k

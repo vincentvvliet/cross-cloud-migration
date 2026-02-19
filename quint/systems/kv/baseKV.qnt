@@ -30,6 +30,7 @@ module BaseKV {
     }
 
     // --- Actions ---
+    // For combined system, writing is handled in kvQueue.process()
     action write(m: Message, r: Replica): bool = all {
         require(r.in(kv.keys())),
         kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
@@ -66,29 +67,28 @@ module BaseKV {
     }
 
     // TODO: decide how to define kvView in the presence of multiple replicas. For now, we just take the view of one replica (the first one in the set of replicas).
-    // TODO: refactor
-    // pure def kvView: int -> int = kv.get(REPLICAS.convertToList().head())
-
-    val kv_flat: int -> int = kv.get(REPLICAS.convertToList().head())
+    val kv_view: int -> int =
+        // Convert each inner map to a set of (key, value) pairs, then flatten
+        kv.values().map(v => v.mapToSet()).flatten().setToMap()
 
     // KV Invariants
     val kv_no_negative_size =
-        size(kv_flat.keys()) >= 0
+        size(kv_view.keys()) >= 0
 
     val kv_max_size =
-        size(kv_flat.keys()) <= KV_MAX_SIZE
+        size(kv_view.keys()) <= KV_MAX_SIZE
 
     val keys_within_domain =
-        kv_flat.keys().forall(k => VALUES.contains(k))
+        kv_view.keys().forall(k => VALUES.contains(k))
 
     val values_within_domain =
-        kv_flat.keys().forall(k =>
-            VALUES.contains(kv_flat.getOrElse(k, -1))
+        kv_view.keys().forall(k =>
+            VALUES.contains(kv_view.getOrElse(k, -1))
         )
 
     val map_is_functional =
-        kv_flat.keys().forall(k =>
-            size(mapToSet(kv_flat).filter(e => e._1 == k)) <= 1
+        kv_view.keys().forall(k =>
+            size(mapToSet(kv_view).filter(e => e._1 == k)) <= 1
         )
 
     val kv_invariants = all {
@@ -98,14 +98,4 @@ module BaseKV {
         values_within_domain,
         map_is_functional,
     }
-
-    // val values_within_domain =
-    //     // Due to replicas, kv maps to a map of maps, so we need to check all values in all inner maps are within the domain.
-    //     kv.keys().forall(k =>
-    //         val curr_kv = kv.get(k)
-    //         curr_kv.keys().forall(k =>
-    //             VALUES.contains(curr_kv.getOrElse(k, -1))
-    //         )
-    //     )
-
 }

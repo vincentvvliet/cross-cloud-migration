@@ -23,6 +23,6 @@ SIGNATURES = {
     ),
     "crash": Signature(
         args="",
-        call=lambda name: f"{name}()",
+        call=lambda name: f"{name}",
     ),
 }

@@ -1,3 +1,4 @@
+# TODO: read capabilities from config and generate systems accordingly
 composition:
   name: KVQueue
 systems:
@@ -11,4 +12,5 @@ systems:
     consistency: strong
     conditional_writes: true
     idempotent_writes: true
+    replicas: false
     max_size: 100

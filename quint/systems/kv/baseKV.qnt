@@ -4,75 +4,91 @@ module BaseKV {
     import basicSpells.* from "../common/basicSpells"
 
     pure val KV_MAX_SIZE: int = 20
+    type Client = int
+    type Replica = int
 
     // KV State
-    var kv: int -> int
+    var kv: Replica -> (int -> int)        // per-replica key-value maps
+    var lastWrite: Client -> (int -> int)  // client’s most recent writes
+    var visibleReplicas: Client -> Set[Replica] // TODO: handle visibility of replicas to clients
+
+    // kv[r] is replica r’s local state
+    // lastWrite[c][k] = v means client c last wrote (k,v)
+    // visibleReplicas[c] models which replicas a client can read from
+
 
     // Init
     action initKV = all {
-        kv' = Set().setToMap()
+        // Each replica starts with empty key-value map
+        kv' = REPLICAS.map(r => (r, Set().setToMap())).setToMap(),
+        
+        // Each client starts with empty lastWrite map
+        lastWrite' = CLIENTS.map(c => (c, Set().setToMap())).setToMap(),
+
+        // Each client initially can see all replicas
+        visibleReplicas' = CLIENTS.map(c => (c, REPLICAS)).setToMap()
     }
 
-    // TODO: check old actions
     // --- Actions ---
-    // action put_action(k: Key, v: Value): bool = all {
-    //     if (KEYS.contains(k) and VALUES.contains(v))  all {
-    //         store' = store.put(k, v),
-    //         if (history.keys().contains(k)) {
-    //             history' = history.put(k, history.get(k).union(Set(v)))
-    //         }
-    //         else {
-    //             history' = history.put(k, Set(v))
-    //         }
-    //     }
-    //     else all {
-    //         store' = store,
-    //         history' = history
-    //     }
+    // For combined system, writing is handled in kvQueue.process()
+    action write(m: Message, r: Replica): bool = all {
+        require(r.in(kv.keys())),
+        kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
+        lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).put(m.key, m.value)),
+        visibleReplicas' = visibleReplicas
+    }
+
+    // Does not change state, but models a read operation that returns a value
+    action read(m: Message, r: Replica, out: int): bool = all {
+        require(r.in(visibleReplicas.get(m.client))),
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        // out = kv.get(r).getOrElse(m.key, -1),
+    }
+
+    // Sync replicas for specified key
+    // action sync(m: Message, src: Replica, dst: Replica): bool = all {
+    //     require(src.in(kv.keys()) and dst.in(kv.keys())),
+    //     require(m.key.in(kv.get(src).keys())),
+    //     kv' = kv.put(dst, kv.get(dst).put(m.key, kv.get(src).get(m.key))),
+    //     lastWrite' = lastWrite,
+    //     visibleReplicas' = visibleReplicas,
     // }
 
-    // action delete(k: Key): bool = {
-    //     if (store.keys().contains(k)) all {
-    //         store' = mapRemove(store, k),
-    //         history' = history
-    //     }
-    //     else all {
-    //         store' = store,
-    //         history' = history
-    //     }
-    // }
+    action sync(src: Replica, dst: Replica): bool = all {
+        require(src.in(kv.keys()) and dst.in(kv.keys())),
+        // Note: this is a simple sync that only copies over keys that are not already present at dst. More complex syncs could involve conflict resolution, timestamps, etc.
+        kv' = kv.get(src).keys()
+            .filter(k => not (k.in(kv.get(dst).keys()))) // Only get keys not already in dst to avoid overwriting at dst
+            .fold(kv, (acc, k) => acc.put(dst, acc.get(dst).put(k, kv.get(src).get(k)))), 
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+    }
 
-    // // A get action does not change state (pure read)
-    // action get_action(k: str): bool = {
-    //     if (store.keys().contains(k)) all {
-    //         store' = store,
-    //         history' = history
-    //     }   
-    //     else all {
-    //         store' = store,
-    //         history' = history
-    //         // return expression, but add failure since key doesn't exist
-    //     }   
-    // }
+    // TODO: decide how to define kvView in the presence of multiple replicas. For now, we just take the view of one replica (the first one in the set of replicas).
+    val kv_view: int -> int =
+        // Convert each inner map to a set of (key, value) pairs, then flatten
+        kv.values().map(v => v.mapToSet()).flatten().setToMap() 
 
     // KV Invariants
     val kv_no_negative_size =
-        size(kv.keys()) >= 0
+        size(kv_view.keys()) >= 0
 
     val kv_max_size =
-        size(kv.keys()) <= KV_MAX_SIZE
+        size(kv_view.keys()) <= KV_MAX_SIZE
 
     val keys_within_domain =
-        kv.keys().forall(k => VALUES.contains(k))
+        kv_view.keys().forall(k => VALUES.contains(k))
 
     val values_within_domain =
-        kv.keys().forall(k =>
-            VALUES.contains(kv.getOrElse(k, -1))
+        kv_view.keys().forall(k =>
+            VALUES.contains(kv_view.getOrElse(k, -1))
         )
 
     val map_is_functional =
-        kv.keys().forall(k =>
-            size(mapToSet(kv).filter(e => e._1 == k)) <= 1
+        kv_view.keys().forall(k =>
+            size(mapToSet(kv_view).filter(e => e._1 == k)) <= 1
         )
 
     val kv_invariants = all {

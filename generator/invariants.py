@@ -3,6 +3,9 @@ from capabilities import SystemCaps, Delivery, Consistency
 from dataclasses import dataclass
 from typing import Any
 from enum import IntEnum
+from load_systems import import_systems
+
+_, QUEUE_SYSTEMS, KV_SYSTEMS = import_systems()
 
 
 @dataclass
@@ -42,7 +45,7 @@ INVARIANTS = [
         name="all_kv_from_queue",
         requires={"kv.idempotent_writes": True},
         quint="""
-        mapToSet(kv).forall(e =>
+        mapToSet(kv_view).forall(e =>
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
@@ -61,7 +64,7 @@ INVARIANTS = [
         quint="""
         history.forall(m =>
           processed.contains(m.id)
-            iff kv.getOrElse(m.key, -1) == m.value
+            iff kv_view.getOrElse(m.key, -1) == m.value
         )
         """,
     ),
@@ -82,7 +85,7 @@ INVARIANTS = [
     Invariant(
         name="crash_safety",
         requires={
-            "queue.type": "Redis",
+            "queue.type": (" or ").join([s for s in QUEUE_SYSTEMS if s != "Redis"]),
         },
         quint="""
       // Crashes should not occur unless specified in the system model

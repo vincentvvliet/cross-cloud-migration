@@ -1,4 +1,4 @@
-from parse_config import parse_config
+from parse_config import load_config
 from invariants import INVARIANTS, satisfies
 from load_systems import load_systems, import_systems
 from generate_invariants import generate_invariants_quint
@@ -9,7 +9,8 @@ def main():
     # TODO: enforce types when parsing config
     # TODO: enforce exactly 2 systems
     # TODO: seperate systems from composite systems
-    caps = parse_config("config/config.yaml")
+
+    caps = load_config()
 
     systems_db, _, _ = import_systems()
 

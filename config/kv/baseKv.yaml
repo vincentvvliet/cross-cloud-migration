@@ -1,0 +1,6 @@
+type: BaseKV
+consistency: strong
+conditional_writes: true
+idempotent_writes: true
+replicas: false
+max_size: 100

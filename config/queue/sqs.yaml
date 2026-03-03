@@ -1,0 +1,4 @@
+type: SQS
+delivery: at_least_once
+ordering: best_effort
+max_size: 10000 # unlimited

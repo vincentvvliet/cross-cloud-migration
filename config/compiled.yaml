@@ -1,13 +1,11 @@
-#  --- IGNORE ---
-# Currently not used, but if multiple configurations are needed, this can be used to specify which one to use.
 composition:
   name: KVQueue
 systems:
   queue:
     type: BaseQueue
     delivery: at_least_once
+    ordering: first_in_first_out
     max_size: 100
-
   kv:
     type: BaseKV
     consistency: strong

@@ -16,6 +16,7 @@ def main():
 
     active = [inv for inv in INVARIANTS if satisfies(caps["systems"], inv.requires)]
 
+    # TODO: only import systems that are actually used by the config
     imports = [systems_db[s]["import"] for s in systems_db]
 
     quint = generate_invariants_quint(active, imports)

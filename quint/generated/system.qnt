@@ -28,6 +28,13 @@ module System {
         visibleReplicas' = visibleReplicas,
         processed' = processed
     }
+    action compositeDelete(m: Message): bool = all {
+        delete(m),
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        processed' = processed
+    }
 
 
     // Unified Step
@@ -43,6 +50,7 @@ module System {
         any {
             compositeEnqueue(input),
             compositeDeliver(getHead(queue)),
+            compositeDelete(getHead(queue)),
             process(getHead(inflight), replica)
         }
     }

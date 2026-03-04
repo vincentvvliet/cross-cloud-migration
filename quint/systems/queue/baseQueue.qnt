@@ -40,6 +40,15 @@ module BaseQueue {
         history' = history,
     }
 
+    action delete(m: Message): bool = all {
+        require(m.in(queue)),
+
+        queue' = setRemove(queue, m),
+        inflight' = inflight,
+        delivered' = delivered.union(Set(m)),
+        history' = setRemove(history, m), // deletion removes from history to uphold exaclty-once invariant
+    }
+
     // TODO: check ack functionality. Add to systems.json as "ack": { "arity": 1, "composite": true, "input": "getHead(inflight)"}
     action ack(m: Message): bool = all {
         require(inflight.contains(m)),

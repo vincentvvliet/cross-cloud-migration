@@ -1,4 +1,4 @@
 type: BaseQueue
-delivery: at_least_once
+delivery: exactly_once
 ordering: first_in_first_out
 max_size: 100

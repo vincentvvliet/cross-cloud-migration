@@ -1,32 +1,7 @@
 import yaml
-from capabilities import Delivery, Consistency
 from pathlib import Path
 
 CONFIG_ROOT = Path("config")
-
-
-def parse_config(path="config/compiled.yaml"):
-    """Parse the configuration YAML file and map delivery strings to enum values."""
-    with open(path) as f:
-
-        data = yaml.safe_load(f)
-        for s in data["systems"].values():
-            if "delivery" in s:
-                s["delivery"] = map_delivery(s["delivery"])
-            if "consistency" in s:
-                s["consistency"] = map_consistency(s["consistency"])
-
-        return data
-
-
-def map_delivery(s: str) -> int:
-    """Map delivery string to Delivery enum value."""
-    return Delivery.from_str(s).value
-
-
-def map_consistency(s: str) -> int:
-    """Map delivery string to Delivery enum value."""
-    return Consistency.from_str(s).value
 
 
 def load_yaml(path: Path) -> dict:
@@ -72,7 +47,7 @@ def compile_config() -> dict:
     return compiled
 
 
-def load_config():
+def main():
     compiled = compile_config()
 
     output_path = CONFIG_ROOT / "compiled.yaml"
@@ -82,8 +57,6 @@ def load_config():
 
     print(f"Compiled configuration written to {output_path}")
 
-    return parse_config()
-
 
 if __name__ == "__main__":
-    load_config()
+    main()

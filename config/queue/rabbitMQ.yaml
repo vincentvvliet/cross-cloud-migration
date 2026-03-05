@@ -1,0 +1,7 @@
+type: RabbitMQ
+delivery: at_least_once
+ordering: first_in_first_out
+# delivery: at_most_once
+# ordering: none
+max_size: 10000
+

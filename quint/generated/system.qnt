@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import BaseQueue.* from "../systems/queue/baseQueue"
+    import Pulsar.* from "../systems/queue/pulsar"
     import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
@@ -28,6 +28,13 @@ module System {
         visibleReplicas' = visibleReplicas,
         processed' = processed
     }
+    action compositeDelete(m: Message): bool = all {
+        delete(m),
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        processed' = processed
+    }
 
 
     // Unified Step
@@ -43,6 +50,7 @@ module System {
         any {
             compositeEnqueue(input),
             compositeDeliver(getHead(queue)),
+            compositeDelete(getHead(queue)),
             process(getHead(inflight), replica)
         }
     }

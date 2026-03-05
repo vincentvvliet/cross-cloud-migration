@@ -1,0 +1,4 @@
+type: Kafka
+delivery: exactly_once
+ordering: partition_level
+max_size: 10000

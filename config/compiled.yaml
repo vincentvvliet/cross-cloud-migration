@@ -1,0 +1,15 @@
+composition:
+  name: KVQueue
+systems:
+  queue:
+    type: Pulsar
+    delivery: exactly_once
+    ordering: first_in_first_out
+    max_size: 10000
+  kv:
+    type: BaseKV
+    consistency: strong
+    conditional_writes: true
+    idempotent_writes: true
+    replicas: false
+    max_size: 100

@@ -1,0 +1,4 @@
+type: SQS_FIFO
+delivery: exactly_once
+ordering: first_in_first_out
+max_size: 3000

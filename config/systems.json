@@ -1,25 +1,4 @@
 {
-  "BaseQueue": {
-    "import": "import BaseQueue.* from \"../systems/queue/baseQueue\"",
-    "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
-    "actions": {
-      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
-    },
-    "init": "initQueue"
-  }, 
-
-  "BaseKV": {
-    "import": "import BaseKV.* from \"../systems/kv/baseKV\"",
-    "state": ["kv", "lastWrite", "visibleReplicas"],
-    "type": "kv",
-    "actions": {
-      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
-    },
-    "init": "initKV"
-  },
-
   "KVQueue": {
     "import": "import KVQueue.* from \"../systems/compositions/kvQueue\"",
     "state": ["processed"],
@@ -30,6 +9,17 @@
     "init": "initComposition"
   },
 
+  "BaseQueue": {
+    "import": "import BaseQueue.* from \"../systems/queue/baseQueue\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  }, 
   "Redis": {
     "import": "import Redis.* from \"../systems/queue/redis\"",
     "state": ["queue", "inflight", "history", "delivered"],
@@ -37,8 +27,107 @@
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
       "crash": { "arg_type": "crash", "composite": true, "input": null}
     },
     "init": "initQueue"
+  },
+  "SQS": {
+    "import": "import SQS.* from \"../systems/queue/sqs\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+
+  "SQS_FIFO": {
+    "import": "import SQS_FIFO.* from \"../systems/queue/sqs_fifo\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "Kafka": {
+    "import": "import Kafka.* from \"../systems/queue/kafka\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "Pulsar": {
+    "import": "import Pulsar.* from \"../systems/queue/pulsar\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "RabbitMQ": {
+    "import": "import RabbitMQ.* from \"../systems/queue/rabbitMQ\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "RocketMQ": {
+    "import": "import RocketMQ.* from \"../systems/queue/rocketMQ\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "ActiveMQ": {
+    "import": "import ActiveMQ.* from \"../systems/queue/activeMQ\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+
+
+  "BaseKV": {
+    "import": "import BaseKV.* from \"../systems/kv/baseKV\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
+    },
+    "init": "initKV"
+  },
+  "DynamoDB": {
+    "import": "import DynamoDB.* from \"../systems/kv/dynamoDB\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
+    },
+    "init": "initKV"
   }
 }

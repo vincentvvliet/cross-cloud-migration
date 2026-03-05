@@ -1,0 +1,6 @@
+type: DynamoDB
+consistency: strong # TODO: check
+conditional_writes: true # TODO: check
+idempotent_writes: true # TODO: check
+replicas: false # TODO: check
+max_size: 100 # TODO: check

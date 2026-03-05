@@ -1,0 +1,4 @@
+type: Redis
+delivery: at_least_once # TODO: check
+ordering: first_in_first_out # TODO: check
+max_size: 100 # TODO: check

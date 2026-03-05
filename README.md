@@ -3,8 +3,8 @@
 ## Running the system
 Running the system works as follows:
 - Update `config/config.yaml`:
-    - composition: Name of combined system
-    - systems: the two systems that make up the composition (including guarantees)
+    - composition: Name of combined system (Currently only supports KVQueue)
+    - systems: the two systems that make up the composition
 - Run `scripts/run.sh`
 
 #### Example config.yaml
@@ -12,17 +12,8 @@ Running the system works as follows:
 composition:
   name: KVQueue
 systems:
-  queue:
-    type: BaseQueue
-    delivery: exactly_once
-    max_size: 10
-
-  kv:
-    type: BaseKV
-    consistency: strong
-    conditional_writes: true
-    idempotent_writes: true
-    max_size: 10
+  queue: BaseQueue
+  kv: BaseKV
 ```
 
 ## Testing singular system
@@ -45,10 +36,10 @@ To test singular system, call `quint run {system}.qnt --invariants {invariants}`
         E.G `"deliver": { "arg_type": "msg, "composite": true, "input": "getHead(queue)"}`
     - init (str): name of `init` function in system 
 - Define capabilities in `generator/capabilities.py`
-- State system capabilities in `config/config.yaml`
+- State system capabilities in `config/{system_type}/{system}.yaml`
 
 ## New composite system
-- Create composite file with naming format: `{system_1}{system_2}.qnt`. E.G. `KVQueue, DynamoDBSQS, CassandraKafka`
+- Create composite file with naming format: `{system_1}{system_2}.qnt`. E.G. `KVQueue`
 - Add composite system to `config/systems.json`
 - Create property dependant invariants in `generator/invariants.py`
     

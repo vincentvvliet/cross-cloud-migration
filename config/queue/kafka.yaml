@@ -1,4 +1,5 @@
 type: Kafka
 delivery: exactly_once
 ordering: partition_level
+messaging_model: pub_sub
 max_size: 10000

@@ -49,6 +49,31 @@ module KVQueue {
         }
     }
 
+    // Consumer Logic - Pub Sub Style
+    action processPubSub(sub: int, m: Message, r: Replica): bool = all {
+        require(m.in(inflight)),
+        require(r.in(kv.keys())),
+
+        if (not(processed.contains(m.id))) all {
+            // apply effect exactly once
+            kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
+            processed' = processed.union(Set(m.id)),
+            inflight' = setRemove(inflight, m),
+            queue' = queue,
+            delivered' = delivered,
+            history' = history,
+            visibleReplicas' = visibleReplicas,
+            lastWrite' = lastWrite.put(
+                m.client, 
+                lastWrite.get(m.client).put(m.key, m.value)
+            ),
+            
+        } else all {
+            // duplicate delivery
+            allUnchanged
+        }
+    }
+
     // --------------------
     // Hybrid Invariants
     // --------------------

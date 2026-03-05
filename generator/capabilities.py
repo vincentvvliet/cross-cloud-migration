@@ -28,6 +28,7 @@ class Consistency(IntEnum):
         }[s]
 
 
+# TODO: use these dataclasses to enforce types when parsing config
 @dataclass
 class QueueCaps:
     delivery: Delivery

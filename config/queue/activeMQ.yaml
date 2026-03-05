@@ -1,4 +1,5 @@
 type: ActiveMQ
 delivery: at_least_once
 ordering: queue_level
+messaging_model: pub_sub # & p2p
 max_size: 10000

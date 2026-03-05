@@ -1,4 +1,5 @@
 type: Pulsar
 delivery: exactly_once
 ordering: first_in_first_out
+messaging_model: pub_sub
 max_size: 10000

@@ -1,0 +1,4 @@
+type: ActiveMQ
+delivery: at_least_once
+ordering: queue_level
+max_size: 10000

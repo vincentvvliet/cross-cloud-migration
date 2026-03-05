@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import BaseQueue.* from "../systems/queue/baseQueue"
+    import Pulsar.* from "../systems/queue/pulsar"
     import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 

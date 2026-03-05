@@ -55,6 +55,62 @@
     },
     "init": "initQueue"
   },
+  "Kafka": {
+    "import": "import Kafka.* from \"../systems/queue/kafka\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "Pulsar": {
+    "import": "import Pulsar.* from \"../systems/queue/pulsar\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "RabbitMQ": {
+    "import": "import RabbitMQ.* from \"../systems/queue/rabbitMQ\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "RocketMQ": {
+    "import": "import RocketMQ.* from \"../systems/queue/rocketMQ\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+  "ActiveMQ": {
+    "import": "import ActiveMQ.* from \"../systems/queue/activeMQ\"",
+    "state": ["queue", "inflight", "history", "delivered"],
+    "type": "queue",
+    "actions": {
+      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+    },
+    "init": "initQueue"
+  },
+
 
   "BaseKV": {
     "import": "import BaseKV.* from \"../systems/kv/baseKV\"",

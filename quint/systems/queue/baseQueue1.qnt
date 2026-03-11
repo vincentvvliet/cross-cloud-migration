@@ -1,36 +1,82 @@
 module BaseQueue {
-    import BaseMessaging.* from "baseMessaging"
     import Types.* from "../common/types"
     import commonSpells.* from "../common/commonSpells"
     import basicSpells.* from "../common/basicSpells"
 
     pure val QUEUE_MAX_SIZE: int = 20
 
+    // Queue State
+    var history: Set[Message]
     var queue: Set[Message]
+    var inflight: Set[Message]
+    var delivered: Set[Message]
 
+
+    // Init
     action initQueue = all {
-        initMessaging,
-        queue' = Set()
+        queue' = Set(),
+        inflight' = Set(),
+        delivered' = Set(),
+        history' = Set(),
     }
 
+    // Queue Actions
     action enqueue(m: Message): bool = all {
-        require(not(history.contains(m))),
+        require(history.forall(p => m.id != p.id and m.key != p.key)),
         require(queue.size() < QUEUE_MAX_SIZE),
 
         queue' = queue.union(Set(m)),
         history' = history.union(Set(m)),
         inflight' = inflight,
-        delivered' = delivered
+        delivered' = delivered,
     }
 
-    action deliverQueue(m: Message): bool = all {
+    action deliver(m: Message): bool = all {
         require(m.in(queue)),
 
         queue' = setRemove(queue, m),
-        deliver(1, m)  // single consumer
+        inflight' = inflight.union(Set(m)),
+        delivered' = delivered,
+        history' = history,
     }
 
+    action delete(m: Message): bool = all {
+        require(m.in(queue)),
+
+        queue' = setRemove(queue, m),
+        inflight' = inflight,
+        delivered' = delivered.union(Set(m)),
+        history' = setRemove(history, m), // deletion removes from history to uphold exaclty-once invariant
+    }
+
+    // TODO: check ack functionality. Add to systems.json as "ack": { "arity": 1, "composite": true, "input": "getHead(inflight)"}
+    action ack(m: Message): bool = all {
+        require(inflight.contains(m)),
+
+        inflight' = setRemove(inflight, m),
+        queue' = queue,
+        delivered' = delivered,
+        history' = history,
+    }
+
+    // Queue Invariants
+    val queue_max_size = size(queue) <= QUEUE_MAX_SIZE
+    val queue_no_negative_size = size(queue) >= 0
+
+    val inflight_originates_from_queue =
+        inflight.subseteq(history)
+
+    val unique_keys_per_message =
+        history.forall(m1 =>
+            history.forall(m2 =>
+                m1.id != m2.id implies m1.key != m2.key
+            )
+        )
+
     val queue_invariants = all {
-        messaging_invariants
+        queue_max_size,
+        queue_no_negative_size,
+        inflight_originates_from_queue,
+        unique_keys_per_message,
     }
 }

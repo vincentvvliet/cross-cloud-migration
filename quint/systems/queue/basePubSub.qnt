@@ -5,31 +5,33 @@ module BasePubSub {
     import basicSpells.* from "../common/basicSpells"
 
     var topics: int -> Set[Message]
-    var subscriptions: int -> Set[int]
+    var subscriptions: int -> Set[int]   // subscriber → topics
 
     action initPubSub = all {
         initMessaging,
         topics' = Map(),
-        subscriptions' = Map()
+        subscriptions' = Map(),
     }
 
-    action publish(topic: int, m: Message): bool = all {
-        require(not(history.contains(m))),
+    pure def recipients(m: Message): Set[int] =
+        subscriptions
+            .keys()
+            .filter(s =>
+                subscriptions.get(s).contains(m.key)
+            )
 
-        topics' = topics.put(topic, topics.get(topic).union(Set(m))),
-        history' = history.union(Set(m)),
-        inflight' = inflight,
-        delivered' = delivered
+    action publishTopic(topic: int, m: Message): bool = all {
+        publish(m),
+
+        topics' = topics.put(topic, topics.get(topic).union(Set(m)))
     }
 
-    action deliverPubSub(sub: int, topic: int, m: Message): bool = all {
-        require(subscriptions.get(sub).contains(topic)),
+    action deliverSub(sub: int, topic: int, m: Message): bool = all {
         require(m.in(topics.get(topic))),
+        require(subscriptions.get(sub).contains(topic)),
 
         deliver(sub, m)
     }
 
-    val pubsub_invariants = all {
-        messaging_invariants
-    }
+    val pubsub_invariants = messaging_invariants
 }

@@ -15,8 +15,7 @@
     "type": "queue",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
     },
     "init": "initQueue"
   }, 

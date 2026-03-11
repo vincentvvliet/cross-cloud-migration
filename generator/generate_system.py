@@ -1,6 +1,8 @@
 from function_signature import SIGNATURES
 
 replicas = False
+pub_sub = True
+broadcast = False  # TODO: support broadcast as well
 
 
 def unchanged_assignments(all_state, owned_state):
@@ -60,6 +62,17 @@ def generate_step(actions):
 
     body = ",\n            ".join(calls)
 
+    recipients_decl = ""
+    recipients_field = ""
+
+    if pub_sub:
+        recipients_decl = (
+            "nondet recipients: Set[int] = CONSUMERS.powerset().oneOf()"
+            if not broadcast
+            else "nondet recipients: Set[int] = CONSUMERS"  # TODO: handle broadcast
+        )
+        recipients_field = ", recipients: recipients"
+
     return f"""
     // Unified Step
     action step = {{
@@ -68,8 +81,9 @@ def generate_step(actions):
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
+        {recipients_decl}
         {"nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()\n" if replicas else ""}
-        val input: Message = {{id: id, key: k, value: v, client: client}}
+        val input: Message = {{id: id, key: k, value: v, client: client{recipients_field}}}
 
         any {{
             {body}
@@ -78,7 +92,7 @@ def generate_step(actions):
 """
 
 
-def handleReplicasQuint(replicas: bool):
+def handleTypesQuint(replicas: bool):
     """
     Handle the case where replicas are used in the system.
     """
@@ -94,6 +108,10 @@ def handleReplicasQuint(replicas: bool):
             lines[i] = (
                 f"    pure val CLIENTS: Set[int] = {"1.to(2)" if replicas else "Set(1)"}\n"
             )
+        elif line.startswith("    pure val CONSUMERS: Set[int]"):
+            lines[i] = (
+                f"    pure val CONSUMERS: Set[int] = {"1.to(3)" if pub_sub else "Set(1)"}\n"
+            )
     with open("quint/systems/common/types.qnt", "w") as f:
         f.writelines(lines)
         f.close()
@@ -108,7 +126,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
 
     # Use of replicas
     replicas = cfg["systems"]["kv"]["replicas"]
-    handleReplicasQuint(replicas)
+    handleTypesQuint(replicas)
 
     all_state = []
     systems = [s["type"] for s in active.values()]
@@ -122,6 +140,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
     lines.append('    import Types.* from "../systems/common/types"')
     lines.append('    import basicSpells.* from "../systems/common/basicSpells"')
     lines.append('    import GeneratedInvariants.* from "./generated_invariants"')
+    lines.append('    import BaseMessaging.* from "../systems/queue/baseMessaging"')
     lines.append("")
 
     # Imports

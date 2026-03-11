@@ -2,10 +2,11 @@ composition:
   name: KVQueue
 systems:
   queue:
-    type: Pulsar
+    type: BaseQueue
     delivery: exactly_once
     ordering: first_in_first_out
-    max_size: 10000
+    messaging_model: p2p
+    max_size: 100
   kv:
     type: BaseKV
     consistency: strong

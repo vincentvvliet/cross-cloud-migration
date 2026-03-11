@@ -26,14 +26,18 @@ module KVQueue {
 
     // Consumer Logic
     action process(m: Message, r: Replica): bool = all {
-        require(m.in(inflight)),
+        require(m.in(inflight.map(k => k._2))),
         require(r.in(kv.keys())),
 
         if (not(processed.contains(m.id))) all {
             // apply effect exactly once
             kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
             processed' = processed.union(Set(m.id)),
-            inflight' = setRemove(inflight, m),
+            
+            inflight' = setRemove(inflight, (match find(inflight, k => k._2 != m) {
+                            | Some(p) => p
+                            | None => (-1, {id: -1, key: -1, value: -1, client: -1}) // Should never happen, just to satisfy the type system
+                        })),
             queue' = queue,
             delivered' = delivered,
             history' = history,
@@ -50,29 +54,29 @@ module KVQueue {
     }
 
     // Consumer Logic - Pub Sub Style
-    action processPubSub(sub: int, m: Message, r: Replica): bool = all {
-        require(m.in(inflight)),
-        require(r.in(kv.keys())),
+    // action processPubSub(sub: int, m: Message, r: Replica): bool = all {
+    //     require(m.in(inflight.map(k => k._2))),
+    //     require(r.in(kv.keys())),
 
-        if (not(processed.contains(m.id))) all {
-            // apply effect exactly once
-            kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
-            processed' = processed.union(Set(m.id)),
-            inflight' = setRemove(inflight, m),
-            queue' = queue,
-            delivered' = delivered,
-            history' = history,
-            visibleReplicas' = visibleReplicas,
-            lastWrite' = lastWrite.put(
-                m.client, 
-                lastWrite.get(m.client).put(m.key, m.value)
-            ),
+    //     if (not(processed.contains(m.id))) all {
+    //         // apply effect exactly once
+    //         kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
+    //         processed' = processed.union(Set(m.id)),
+    //         inflight' = setRemove(inflight, m),
+    //         queue' = queue,
+    //         delivered' = delivered,
+    //         history' = history,
+    //         visibleReplicas' = visibleReplicas,
+    //         lastWrite' = lastWrite.put(
+    //             m.client, 
+    //             lastWrite.get(m.client).put(m.key, m.value)
+    //         ),
             
-        } else all {
-            // duplicate delivery
-            allUnchanged
-        }
-    }
+    //     } else all {
+    //         // duplicate delivery
+    //         allUnchanged
+    //     }
+    // }
 
     // --------------------
     // Hybrid Invariants
@@ -90,7 +94,7 @@ module KVQueue {
     // No processing after acknowledgment
     val no_processing_after_ack =
         inflight.forall(m =>
-            not(processed.contains(m.id))
+            not(processed.contains(m._2.id))
         )
 
     // Eventual consistency-style causality

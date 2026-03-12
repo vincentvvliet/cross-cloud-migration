@@ -1,5 +1,4 @@
 module BaseQueue {
-    // import BaseMessaging. * from "baseMessaging"
     import Types.* from "../common/types"
     import commonSpells.* from "../common/commonSpells"
     import basicSpells.* from "../common/basicSpells"
@@ -30,18 +29,16 @@ module BaseQueue {
     }
 
     // alias used by pub/sub systems
-    action publish(m: Message): bool =
-        enqueue(m)
+    action publish(m: Message): bool = enqueue(m)
 
     // ---- DELIVERY ----
 
     // generic delivery
-    action deliver(recipient: int, m: Message): bool = all {
+    action deliver(m: Message): bool = all {
         require(m.in(queue)),
-        require(recipient.in(m.recipients)),
 
         queue' = setRemove(queue, m),
-        inflight' = inflight.union(Set((recipient, m))),
+        inflight' = inflight.union(m.recipients.map(r => (r, m))),
         history' = history,
         delivered' = delivered,
     }
@@ -62,7 +59,7 @@ module BaseQueue {
 
         queue' = setRemove(queue, m),
         inflight' = inflight,
-        delivered' = delivered.union(Set((m.recipients, m))),
+        delivered' = delivered.union(m.recipients.map(r => (r, m))), // TODO: check if this is correct for pub/sub. We want to mark as delivered to all recipients
         history' = setRemove(history, m), // deletion removes from history to uphold exaclty-once invariant
     }
 

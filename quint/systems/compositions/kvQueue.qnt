@@ -34,10 +34,14 @@ module KVQueue {
             kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
             processed' = processed.union(Set(m.id)),
             
-            inflight' = setRemove(inflight, (match find(inflight, k => k._2 != m) {
+            inflight' = setRemove(inflight, (match find(inflight, k => k._2.id == m.id) {
                             | Some(p) => p
-                            | None => (-1, {id: -1, key: -1, value: -1, client: -1}) // Should never happen, just to satisfy the type system
+                            | None => (-1, {id: -1, key: -1, value: -1, client: -1, recipients: Set(-1)}) // Should never happen, just to satisfy the type system
                         })),
+            // inflight' = setRemove(inflight, (match find(inflight, k => k._2 != m) {
+            //                 | Some(p) => p
+            //                 | None => (-1, {id: -1, key: -1, value: -1, client: -1, recipients: Set(-1)}) // Should never happen, just to satisfy the type system
+            //             })),
             queue' = queue,
             delivered' = delivered,
             history' = history,

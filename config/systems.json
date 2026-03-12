@@ -34,7 +34,7 @@
   "SQS": {
     "import": "import SQS.* from \"../systems/queue/sqs\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_p2p",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
@@ -46,7 +46,7 @@
   "SQS_FIFO": {
     "import": "import SQS_FIFO.* from \"../systems/queue/sqs_fifo\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_p2p",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
@@ -57,7 +57,7 @@
   "Kafka": {
     "import": "import Kafka.* from \"../systems/queue/kafka\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_pubsub",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
@@ -68,7 +68,7 @@
   "Pulsar": {
     "import": "import Pulsar.* from \"../systems/queue/pulsar\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_pubsub",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
@@ -79,7 +79,7 @@
   "RabbitMQ": {
     "import": "import RabbitMQ.* from \"../systems/queue/rabbitMQ\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_p2p",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
@@ -90,7 +90,7 @@
   "RocketMQ": {
     "import": "import RocketMQ.* from \"../systems/queue/rocketMQ\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_pubsub",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
@@ -101,7 +101,7 @@
   "ActiveMQ": {
     "import": "import ActiveMQ.* from \"../systems/queue/activeMQ\"",
     "state": ["queue", "inflight", "history", "delivered"],
-    "type": "queue",
+    "type": "queue_pubsub",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
       "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},

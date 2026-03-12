@@ -4,7 +4,7 @@
     "state": ["processed"],
     "type": "composition",
     "actions": {
-      "process": { "arg_type": "msg_replica", "composite": false, "input": "getHead(inflight), replica"}
+      "process": { "arg_type": "msg_replica", "composite": false, "input": "inflight, replica"}
     },
     "init": "initComposition"
   },
@@ -15,7 +15,7 @@
     "type": "queue",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   }, 

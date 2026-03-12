@@ -1,7 +1,7 @@
 from function_signature import SIGNATURES
 
 replicas = False
-pub_sub = True
+pub_sub = False
 broadcast = False  # TODO: support broadcast as well
 
 
@@ -37,41 +37,40 @@ def generate_composite_action(name, arg_type, owned, all_state, composite):
 
 
 def generate_step(actions):
-    """
-    Generate the unified step action that nondeterministically chooses one of the actions.
-    """
     calls = []
 
     for act in actions:
-        # Decide function name
-        if act["composite"]:
-            fn = f"composite{act['name'].capitalize()}"
-        else:
-            fn = act["name"]
+        fn = f"composite{act['name'].capitalize()}" if act["composite"] else act["name"]
+        src = act.get("input")
 
-        # Decide arguments
-        if act["arg_type"] in SIGNATURES:
-            if act["arg_type"] == "crash":
-                call = f"{fn}"
+        if act["arg_type"] == "crash":
+            calls.append(fn)
+            continue
+
+        # direct input message
+        if src == "input":
+            calls.append(f"{fn}(input)")
+            continue
+
+        # state source
+        if src:
+            if src.startswith("inflight"):
+                src = src.split(",")[0]
+                action_call = f"{fn}(m._2, replica)"
             else:
-                call = f"{fn}({act['input']})"
-        else:
-            raise ValueError(f"Unsupported arg_type: {act['arg_type']}")
+                action_call = f"{fn}(m)"
 
-        calls.append(call)
+            calls.append(
+                f"""match getHead({src}) {{
+                | Some(m) => {action_call}
+                | None => allUnchanged
+            }}"""
+            )
+            continue
+
+        raise ValueError(f"Unsupported input source: {src}")
 
     body = ",\n            ".join(calls)
-
-    recipients_decl = ""
-    recipients_field = ""
-
-    if pub_sub:
-        recipients_decl = (
-            "nondet recipients: Set[int] = CONSUMERS.powerset().oneOf()"
-            if not broadcast
-            else "nondet recipients: Set[int] = CONSUMERS"  # TODO: handle broadcast
-        )
-        recipients_field = ", recipients: recipients"
 
     return f"""
     // Unified Step
@@ -81,9 +80,10 @@ def generate_step(actions):
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
-        {recipients_decl}
-        {"nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()\n" if replicas else ""}
-        val input: Message = {{id: id, key: k, value: v, client: client{recipients_field}}}
+        nondet recipients: Set[int] = CONSUMERS.oneOf()
+        {"nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()" if replicas else ""}
+
+        val input: Message = {{id: id, key: k, value: v, client: client, recipients: recipients}}
 
         any {{
             {body}
@@ -92,7 +92,7 @@ def generate_step(actions):
 """
 
 
-def handleTypesQuint(replicas: bool):
+def handleTypesQuint():
     """
     Handle the case where replicas are used in the system.
     """
@@ -108,9 +108,10 @@ def handleTypesQuint(replicas: bool):
             lines[i] = (
                 f"    pure val CLIENTS: Set[int] = {"1.to(2)" if replicas else "Set(1)"}\n"
             )
-        elif line.startswith("    pure val CONSUMERS: Set[int]"):
+        elif line.startswith("    pure val CONSUMERS:"):
+            print(pub_sub)
             lines[i] = (
-                f"    pure val CONSUMERS: Set[int] = {"1.to(3)" if pub_sub else "Set(1)"}\n"
+                f"    pure val CONSUMERS: Set[Set[int]] = {"1.to(3).powerset().filter(r => not(r.size() > 1))" if pub_sub else "Set(Set(1))"}\n"
             )
     with open("quint/systems/common/types.qnt", "w") as f:
         f.writelines(lines)
@@ -118,7 +119,7 @@ def handleTypesQuint(replicas: bool):
 
 
 def generate_system_qnt(cfg, systems_db, out_path):
-    global replicas
+    global replicas, pub_sub
     """
     Generate the system QNT file based on the configuration and systems database.
     """
@@ -126,11 +127,14 @@ def generate_system_qnt(cfg, systems_db, out_path):
 
     # Use of replicas
     replicas = cfg["systems"]["kv"]["replicas"]
-    handleTypesQuint(replicas)
 
     all_state = []
     systems = [s["type"] for s in active.values()]
     systems.append(cfg["composition"]["name"])
+
+    # Check queue type
+    pub_sub = any(systems_db[s]["type"].startswith("queue_pubsub") for s in systems)
+    handleTypesQuint()
 
     for s in systems:
         all_state += systems_db[s]["state"]
@@ -140,7 +144,6 @@ def generate_system_qnt(cfg, systems_db, out_path):
     lines.append('    import Types.* from "../systems/common/types"')
     lines.append('    import basicSpells.* from "../systems/common/basicSpells"')
     lines.append('    import GeneratedInvariants.* from "./generated_invariants"')
-    lines.append('    import BaseMessaging.* from "../systems/queue/baseMessaging"')
     lines.append("")
 
     # Imports

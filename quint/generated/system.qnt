@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import Pulsar.* from "../systems/queue/pulsar"
+    import BaseQueue.* from "../systems/queue/baseQueue"
     import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
@@ -28,13 +28,6 @@ module System {
         visibleReplicas' = visibleReplicas,
         processed' = processed
     }
-    action compositeDelete(m: Message): bool = all {
-        delete(m),
-        kv' = kv,
-        lastWrite' = lastWrite,
-        visibleReplicas' = visibleReplicas,
-        processed' = processed
-    }
 
 
     // Unified Step
@@ -44,14 +37,21 @@ module System {
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
+        nondet recipients: Set[int] = CONSUMERS.oneOf()
         
-        val input: Message = {id: id, key: k, value: v, client: client}
+
+        val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
 
         any {
             compositeEnqueue(input),
-            compositeDeliver(getHead(queue)),
-            compositeDelete(getHead(queue)),
-            process(getHead(inflight), replica)
+            match getHead(queue) {
+                | Some(m) => compositeDeliver(m)
+                | None => allUnchanged
+            },
+            match getHead(inflight) {
+                | Some(m) => process(m._2, replica)
+                | None => allUnchanged
+            }
         }
     }
 
@@ -66,7 +66,9 @@ module System {
 
     // Full System Invariants
     val SystemCorrect =
-        base_invariants and
-        composition_specific_invariants and
+        base_invariants 
+        and
+        composition_specific_invariants 
+        and
         generated_invariants
 }

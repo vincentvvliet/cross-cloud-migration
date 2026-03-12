@@ -20,7 +20,8 @@ module BaseQueue {
     // ---- PRODUCER ACTIONS ----
 
     action enqueue(m: Message): bool = all {
-        require(history.forall(p => p.id != m.id)),
+        require(history.forall(p => p.id != m.id and p.key != m.key)), // enforce unique ids and keys in the queue
+        require(queue.size() < QUEUE_MAX_SIZE),
 
         queue' = queue.union(Set(m)),
         history' = history.union(Set(m)),

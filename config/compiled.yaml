@@ -2,11 +2,11 @@ composition:
   name: KVQueue
 systems:
   queue:
-    type: BaseQueue
+    type: Kafka
     delivery: exactly_once
-    ordering: first_in_first_out
-    messaging_model: p2p
-    max_size: 100
+    ordering: partition_level
+    messaging_model: pub_sub
+    max_size: 10000
   kv:
     type: BaseKV
     consistency: strong

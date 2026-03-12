@@ -25,8 +25,8 @@
     "type": "queue",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"},
       "crash": { "arg_type": "crash", "composite": true, "input": null}
     },
     "init": "initQueue"
@@ -37,8 +37,8 @@
     "type": "queue_p2p",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },
@@ -49,8 +49,8 @@
     "type": "queue_p2p",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },
@@ -59,9 +59,9 @@
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue_pubsub",
     "actions": {
-      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "publish": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },
@@ -70,9 +70,9 @@
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue_pubsub",
     "actions": {
-      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "publish": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },
@@ -82,8 +82,8 @@
     "type": "queue_p2p",
     "actions": {
       "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },
@@ -92,9 +92,9 @@
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue_pubsub",
     "actions": {
-      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "publish": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },
@@ -103,9 +103,9 @@
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue_pubsub",
     "actions": {
-      "enqueue": { "arg_type": "msg", "composite": true, "input": "input"},
-      "deliver": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"},
-      "delete": { "arg_type": "msg", "composite": true, "input": "getHead(queue)"}
+      "publish": { "arg_type": "msg", "composite": true, "input": "input"},
+      "deliver": { "arg_type": "msg", "composite": true, "input": "queue"},
+      "delete": { "arg_type": "msg", "composite": true, "input": "queue"}
     },
     "init": "initQueue"
   },

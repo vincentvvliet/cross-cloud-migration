@@ -109,7 +109,6 @@ def handleTypesQuint():
                 f"    pure val CLIENTS: Set[int] = {"1.to(2)" if replicas else "Set(1)"}\n"
             )
         elif line.startswith("    pure val CONSUMERS:"):
-            print(pub_sub)
             lines[i] = (
                 f"    pure val CONSUMERS: Set[Set[int]] = {"1.to(3).powerset().filter(r => not(r.size() > 1))" if pub_sub else "Set(Set(1))"}\n"
             )

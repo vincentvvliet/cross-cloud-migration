@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import BaseQueue.* from "../systems/queue/baseQueue"
+    import Kafka.* from "../systems/queue/kafka"
     import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
@@ -14,8 +14,8 @@ module System {
         initComposition
     }
 
-    action compositeEnqueue(m: Message): bool = all {
-        enqueue(m),
+    action compositePublish(m: Message): bool = all {
+        publish(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -23,6 +23,13 @@ module System {
     }
     action compositeDeliver(m: Message): bool = all {
         deliver(m),
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        processed' = processed
+    }
+    action compositeDelete(m: Message): bool = all {
+        delete(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -43,9 +50,13 @@ module System {
         val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
 
         any {
-            compositeEnqueue(input),
+            compositePublish(input),
             match getHead(queue) {
                 | Some(m) => compositeDeliver(m)
+                | None => allUnchanged
+            },
+            match getHead(queue) {
+                | Some(m) => compositeDelete(m)
                 | None => allUnchanged
             },
             match getHead(inflight) {
@@ -66,9 +77,7 @@ module System {
 
     // Full System Invariants
     val SystemCorrect =
-        base_invariants 
-        and
-        composition_specific_invariants 
-        and
+        base_invariants and
+        composition_specific_invariants and
         generated_invariants
 }

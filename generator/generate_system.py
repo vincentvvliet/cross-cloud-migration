@@ -52,6 +52,10 @@ def generate_step(actions):
             calls.append(f"{fn}(input)")
             continue
 
+        if fn == "compositeSync":
+            calls.append(f"{fn}(replica, dst)")
+            continue
+
         # state source
         if src:
             if src.startswith("inflight"):

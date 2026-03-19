@@ -5,9 +5,9 @@ module BaseQueue {
 
     // ---- STATE ----
     var queue: Set[Message]
-    var inflight: Set[(int, Message)]
+    var inflight: Set[(Recipient, Message)]
     var history: Set[Message]
-    var delivered: Set[(int, Message)]
+    var delivered: Set[(Recipient, Message)]
 
     // ---- INIT ----
     action initQueue = all {

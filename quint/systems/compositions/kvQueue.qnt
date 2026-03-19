@@ -6,7 +6,7 @@ module KVQueue {
     import basicSpells.* from "../common/basicSpells"
     
     // Composition State
-    var processed: Set[(int, Message)] // set of (recipient, message) pairs that have been processed
+    var processed: Set[(Recipient, Message)] // set of (recipient, message) pairs that have been processed
 
     // Init
     action initComposition = all {

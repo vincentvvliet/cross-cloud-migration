@@ -14,4 +14,6 @@ module Types {
         client: int,
         recipients: Set[int]
     }
+
+    type Recipient = int
 }

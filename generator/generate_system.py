@@ -60,7 +60,7 @@ def generate_step(actions):
         if src:
             if src.startswith("inflight"):
                 src = src.split(",")[0]
-                action_call = f"{fn}(m._2, replica)"
+                action_call = f"{fn}(m._1, m._2, replica)"
             else:
                 action_call = f"{fn}(m)"
 

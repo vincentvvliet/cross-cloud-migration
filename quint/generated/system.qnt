@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import Kafka.* from "../systems/queue/kafka"
+    import BaseQueue.* from "../systems/queue/baseQueue"
     import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
@@ -14,8 +14,8 @@ module System {
         initComposition
     }
 
-    action compositePublish(m: Message): bool = all {
-        publish(m),
+    action compositeEnqueue(m: Message): bool = all {
+        enqueue(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -23,13 +23,6 @@ module System {
     }
     action compositeDeliver(m: Message): bool = all {
         deliver(m),
-        kv' = kv,
-        lastWrite' = lastWrite,
-        visibleReplicas' = visibleReplicas,
-        processed' = processed
-    }
-    action compositeDelete(m: Message): bool = all {
-        delete(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -50,17 +43,13 @@ module System {
         val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
 
         any {
-            compositePublish(input),
+            compositeEnqueue(input),
             match getHead(queue) {
                 | Some(m) => compositeDeliver(m)
                 | None => allUnchanged
             },
-            match getHead(queue) {
-                | Some(m) => compositeDelete(m)
-                | None => allUnchanged
-            },
             match getHead(inflight) {
-                | Some(m) => process(m._2, replica)
+                | Some(m) => process(m._1, m._2, replica)
                 | None => allUnchanged
             }
         }

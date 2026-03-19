@@ -6,7 +6,7 @@ module KVQueue {
     import basicSpells.* from "../common/basicSpells"
     
     // Composition State
-    var processed: Set[int]
+    var processed: Set[(int, Message)] // set of (recipient, message) pairs that have been processed
 
     // Init
     action initComposition = all {
@@ -25,62 +25,34 @@ module KVQueue {
     }
 
     // Consumer Logic
-    action process(m: Message, r: Replica): bool = all {
-        require(m.in(inflight.map(k => k._2))),
+    action process(recipient: int, m: Message, r: Replica): bool = all {
+        require(inflight.contains((recipient, m))),
         require(r.in(kv.keys())),
 
-        if (not(processed.contains(m.id))) all {
-            // apply effect exactly once
+        if (not(processed.contains((recipient, m)))) all {
+
+            // apply effect exactly once per (recipient, message)
             kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
-            processed' = processed.union(Set(m.id)),
-            
-            inflight' = setRemove(inflight, (match find(inflight, k => k._2.id == m.id) {
-                            | Some(p) => p
-                            | None => (-1, {id: -1, key: -1, value: -1, client: -1, recipients: Set(-1)}) // Should never happen, just to satisfy the type system
-                        })),
-            // inflight' = setRemove(inflight, (match find(inflight, k => k._2 != m) {
-            //                 | Some(p) => p
-            //                 | None => (-1, {id: -1, key: -1, value: -1, client: -1, recipients: Set(-1)}) // Should never happen, just to satisfy the type system
-            //             })),
+
+            processed' = processed.union(Set((recipient, m))),
+
+            inflight' = setRemove(inflight, (recipient, m)),
+
             queue' = queue,
             delivered' = delivered,
             history' = history,
             visibleReplicas' = visibleReplicas,
+
             lastWrite' = lastWrite.put(
                 m.client, 
                 lastWrite.get(m.client).put(m.key, m.value)
-            ),
-            
+            )
+
         } else all {
-            // duplicate delivery
+            // duplicate processing attempt
             allUnchanged
         }
     }
-
-    // Consumer Logic - Pub Sub Style
-    // action processPubSub(sub: int, m: Message, r: Replica): bool = all {
-    //     require(m.in(inflight.map(k => k._2))),
-    //     require(r.in(kv.keys())),
-
-    //     if (not(processed.contains(m.id))) all {
-    //         // apply effect exactly once
-    //         kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
-    //         processed' = processed.union(Set(m.id)),
-    //         inflight' = setRemove(inflight, m),
-    //         queue' = queue,
-    //         delivered' = delivered,
-    //         history' = history,
-    //         visibleReplicas' = visibleReplicas,
-    //         lastWrite' = lastWrite.put(
-    //             m.client, 
-    //             lastWrite.get(m.client).put(m.key, m.value)
-    //         ),
-            
-    //     } else all {
-    //         // duplicate delivery
-    //         allUnchanged
-    //     }
-    // }
 
     // --------------------
     // Hybrid Invariants
@@ -91,22 +63,22 @@ module KVQueue {
 
     // At-least-once safety: deduplication works
     val no_double_processing =
-        processed.forall(id =>
-            size(history.filter(m => m.id == id)) == 1
+        processed.forall(p =>
+            size(history.filter(m => m.id == p._2.id)) == 1
         )
 
     // No processing after acknowledgment
     val no_processing_after_ack =
-        inflight.forall(m =>
-            not(processed.contains(m._2.id))
+        inflight.forall(p =>
+            not(processed.contains((p)))
         )
 
     // Eventual consistency-style causality
     val kv_values_eventually_from_processed =
         kv_view.keys().forall(k =>
-            processed.exists(id =>
+            processed.exists(p =>
                 history.exists(m =>
-                    m.id == id and m.key == k
+                    m.id == p._2.id and m.key == k
                 )
             )
         )

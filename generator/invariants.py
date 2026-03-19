@@ -39,7 +39,7 @@ INVARIANTS = [
     Invariant(
         name="processed_from_queue",
         requires={"queue.delivery": Delivery.AT_LEAST_ONCE},
-        quint="processed.forall(id => history.exists(m => m.id == id))",
+        quint="processed.forall(p => history.exists(m => m.id == p._2.id))",
     ),
     Invariant(
         name="all_kv_from_queue",
@@ -49,7 +49,7 @@ INVARIANTS = [
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
-            processed.contains(m.id)
+            processed.map(p => p._2.id).contains(m.id)
           )
         )
         """,
@@ -63,7 +63,7 @@ INVARIANTS = [
         },
         quint="""
         history.forall(m =>
-          processed.contains(m.id)
+          processed.map(p => p._2.id).contains(m.id)
             iff kv_view.getOrElse(m.key, -1) == m.value
         )
         """,
@@ -74,10 +74,10 @@ INVARIANTS = [
             "queue.delivery": Delivery.AT_MOST_ONCE,
         },
         quint="""
-      processed.forall(id =>
-            processed.forall(other_id =>
-                id == other_id or
-                history.filter(m => m.id == id).size() == 1
+      processed.forall(p =>
+            processed.forall(other_p =>
+                p._2.id == other_p._2.id or
+                history.filter(m => m.id == p._2.id).size() == 1
             )
         )
       """,

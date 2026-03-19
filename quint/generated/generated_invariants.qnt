@@ -5,28 +5,28 @@ module GeneratedInvariants {
     import commonSpells.* from "../systems/common/commonSpells"
     import basicSpells.* from "../systems/common/basicSpells"
     import KVQueue.* from "../systems/compositions/kvQueue"
-		import Kafka.* from "../systems/queue/kafka"
+		import BaseQueue.* from "../systems/queue/baseQueue"
 		import BaseKV.* from "../systems/kv/baseKV"
 
-    val processed_from_queue = processed.forall(id => history.exists(m => m.id == id))
+    val processed_from_queue = processed.forall(p => history.exists(m => m.id == p._2.id))
 
 		val all_kv_from_queue = mapToSet(kv_view).forall(e =>
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
-            processed.contains(m.id)
+            processed.map(p => p._2.id).contains(m.id)
           )
         )
 
 		val exactly_once = history.forall(m =>
-          processed.contains(m.id)
+          processed.map(p => p._2.id).contains(m.id)
             iff kv_view.getOrElse(m.key, -1) == m.value
         )
 
-		val at_most_once = processed.forall(id =>
-            processed.forall(other_id =>
-                id == other_id or
-                history.filter(m => m.id == id).size() == 1
+		val at_most_once = processed.forall(p =>
+            processed.forall(other_p =>
+                p._2.id == other_p._2.id or
+                history.filter(m => m.id == p._2.id).size() == 1
             )
         )
 

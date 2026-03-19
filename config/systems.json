@@ -128,5 +128,39 @@
       "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
     },
     "init": "initKV"
+  },
+  "CosmosDB": {
+    "import": "import CosmosDB.* from \"../systems/kv/cosmosDB\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
+    },
+    "init": "initKV"
+  },
+  "Cassandra": {
+    "import": "import Cassandra.* from \"../systems/kv/cassandra\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
+    },
+    "init": "initKV"
+  },
+  "Memcached": {
+    "import": "import Memcached.* from \"../systems/kv/memcached\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {},
+    "init": "initKV"
+  },
+  "MongoDB": {
+    "import": "import MongoDB.* from \"../systems/kv/MongoDB\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
+    },
+    "init": "initKV"
   }
 }

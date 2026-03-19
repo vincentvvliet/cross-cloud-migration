@@ -1,0 +1,6 @@
+type: MongoDB
+consistency: strong # eventual on replicas
+conditional_writes: true
+idempotent_writes: true
+replicas: true
+max_size: 100

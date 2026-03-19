@@ -1,0 +1,7 @@
+type: Memcached
+consistency: none # TODO: add as option
+conditional_writes: false 
+idempotent_writes: true
+replicas: false 
+max_size: 100 # TODO: check
+# TODO: forgetting is a feature: items expire

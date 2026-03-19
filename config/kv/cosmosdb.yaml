@@ -1,0 +1,6 @@
+type: CosmosDB
+consistency: strong # or eventual or tunable
+conditional_writes: true
+idempotent_writes: true
+replicas: true
+max_size: 100

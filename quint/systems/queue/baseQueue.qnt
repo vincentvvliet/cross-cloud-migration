@@ -20,7 +20,7 @@ module BaseQueue {
     // ---- PRODUCER ACTIONS ----
 
     action enqueue(m: Message): bool = all {
-        require(history.forall(p => p.id != m.id and p.key != m.key)), // enforce unique ids and keys in the queue
+        require(history.forall(p => p.id != m.id and p.key != m.key)),
         require(queue.size() < QUEUE_MAX_SIZE),
 
         queue' = queue.union(Set(m)),
@@ -46,11 +46,11 @@ module BaseQueue {
 
     // ---- ACK / DELETE ----
 
-    // action ack(recipient: int, m: Message): bool = all {
-    //     require(inflight.contains((recipient, m))),
+    // action ack(m: Message): bool = all {
+    //     require(m.recipients.forall(r => inflight.contains((r, m)))),
 
-    //     inflight' = setRemove(inflight, (recipient, m)),
-    //     delivered' = delivered.union(Set((recipient, m))),
+    //     inflight' = setRemove(inflight, (m.recipients, m)),
+    //     delivered' = delivered.union(Set((m.recipients, m))),
     //     queue' = queue,
     //     history' = history,
     // }
@@ -65,6 +65,18 @@ module BaseQueue {
     }
 
     // ---- INVARIANTS ----
+    val queue_max_size = size(queue) <= QUEUE_MAX_SIZE
+    val queue_no_negative_size = size(queue) >= 0
+
+    val inflight_originates_from_queue =
+        inflight.map(r => r._2).subseteq(history)
+
+    val unique_keys_per_message =
+        history.forall(m1 =>
+            history.forall(m2 =>
+                m1.id != m2.id implies m1.key != m2.key
+            )
+        )
 
     val inflight_origin =
         inflight.forall(p => history.contains(p._2))
@@ -73,7 +85,11 @@ module BaseQueue {
         inflight.forall(p => p._1.in(p._2.recipients))
 
     val queue_invariants = all {
+        queue_max_size,
+        queue_no_negative_size,
         inflight_origin,
         valid_recipients,
+        inflight_originates_from_queue,
+        unique_keys_per_message,
     }
 }

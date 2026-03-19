@@ -1,0 +1,6 @@
+type: Cassandra
+consistency: tunable
+conditional_writes: false # TODO: actually 'limited'
+idempotent_writes: true
+replicas: true
+max_size: 100

@@ -19,12 +19,14 @@ class Delivery(IntEnum):
 class Consistency(IntEnum):
     EVENTUAL = 0
     STRONG = 1
+    TUNABLE = 2
 
     @staticmethod
     def from_str(s: str) -> "Consistency":
         return {
             "eventual": Consistency.EVENTUAL,
             "strong": Consistency.STRONG,
+            "tunable": Consistency.TUNABLE,
         }[s]
 
 

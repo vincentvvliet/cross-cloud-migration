@@ -3,26 +3,24 @@ module BaseQueue {
     import commonSpells.* from "../common/commonSpells"
     import basicSpells.* from "../common/basicSpells"
 
-    pure val QUEUE_MAX_SIZE: int = 20
-
-    // Queue State
-    var history: Set[Message]
+    // ---- STATE ----
     var queue: Set[Message]
-    var inflight: Set[Message]
-    var delivered: Set[Message]
+    var inflight: Set[(Recipient, Message)]
+    var history: Set[Message]
+    var delivered: Set[(Recipient, Message)]
 
-
-    // Init
+    // ---- INIT ----
     action initQueue = all {
         queue' = Set(),
         inflight' = Set(),
-        delivered' = Set(),
         history' = Set(),
+        delivered' = Set(),
     }
 
-    // Queue Actions
+    // ---- PRODUCER ACTIONS ----
+
     action enqueue(m: Message): bool = all {
-        require(history.forall(p => m.id != p.id and m.key != p.key)),
+        require(history.forall(p => p.id != m.id and p.key != m.key)),
         require(queue.size() < QUEUE_MAX_SIZE),
 
         queue' = queue.union(Set(m)),
@@ -31,40 +29,47 @@ module BaseQueue {
         delivered' = delivered,
     }
 
+    // alias used by pub/sub systems
+    action publish(m: Message): bool = enqueue(m)
+
+    // ---- DELIVERY ----
+
+    // generic delivery
     action deliver(m: Message): bool = all {
         require(m.in(queue)),
 
         queue' = setRemove(queue, m),
-        inflight' = inflight.union(Set(m)),
-        delivered' = delivered,
+        inflight' = inflight.union(m.recipients.map(r => (r, m))),
         history' = history,
+        delivered' = delivered,
     }
+
+    // ---- ACK / DELETE ----
+
+    // action ack(m: Message): bool = all {
+    //     require(m.recipients.forall(r => inflight.contains((r, m)))),
+
+    //     inflight' = setRemove(inflight, (m.recipients, m)),
+    //     delivered' = delivered.union(Set((m.recipients, m))),
+    //     queue' = queue,
+    //     history' = history,
+    // }
 
     action delete(m: Message): bool = all {
         require(m.in(queue)),
 
         queue' = setRemove(queue, m),
         inflight' = inflight,
-        delivered' = delivered.union(Set(m)),
+        delivered' = delivered.union(m.recipients.map(r => (r, m))), // TODO: check if this is correct for pub/sub. We want to mark as delivered to all recipients
         history' = setRemove(history, m), // deletion removes from history to uphold exaclty-once invariant
     }
 
-    // TODO: check ack functionality. Add to systems.json as "ack": { "arity": 1, "composite": true, "input": "getHead(inflight)"}
-    action ack(m: Message): bool = all {
-        require(inflight.contains(m)),
-
-        inflight' = setRemove(inflight, m),
-        queue' = queue,
-        delivered' = delivered,
-        history' = history,
-    }
-
-    // Queue Invariants
+    // ---- INVARIANTS ----
     val queue_max_size = size(queue) <= QUEUE_MAX_SIZE
     val queue_no_negative_size = size(queue) >= 0
 
     val inflight_originates_from_queue =
-        inflight.subseteq(history)
+        inflight.map(r => r._2).subseteq(history)
 
     val unique_keys_per_message =
         history.forall(m1 =>
@@ -73,9 +78,17 @@ module BaseQueue {
             )
         )
 
+    val inflight_origin =
+        inflight.forall(p => history.contains(p._2))
+
+    val valid_recipients =
+        inflight.forall(p => p._1.in(p._2.recipients))
+
     val queue_invariants = all {
         queue_max_size,
         queue_no_negative_size,
+        inflight_origin,
+        valid_recipients,
         inflight_originates_from_queue,
         unique_keys_per_message,
     }

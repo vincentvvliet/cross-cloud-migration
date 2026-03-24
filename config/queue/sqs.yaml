@@ -1,4 +1,5 @@
 type: SQS
 delivery: at_least_once
 ordering: best_effort
+messaging_model: p2p
 max_size: 10000 # unlimited

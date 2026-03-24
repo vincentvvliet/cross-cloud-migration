@@ -1,4 +1,5 @@
 type: RocketMQ
 delivery: at_least_once
 ordering: queue_level
+messaging_model: pub_sub
 max_size: 10000

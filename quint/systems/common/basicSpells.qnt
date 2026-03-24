@@ -377,8 +377,8 @@ module basicSpells {
   def convertToList(s: Set[a]): List[a] =
       (s.fold([], (acc, x) => acc.append(x)))
 
-  def getHead(s: Set[Message]): Message = {
-      if (s.size() >= 1) convertToList(s).head()
-      else {id: -1, key: -1, value: -1, client: -1}
+  def getHead(s: Set[a]): Option[a] = {
+      if (s.size() >= 1) Some(convertToList(s).head())
+      else None
   }
 }

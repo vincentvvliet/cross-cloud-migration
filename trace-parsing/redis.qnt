@@ -1,13 +1,14 @@
 module BaseKV {
-    import Types.* from "../common/types"
-    import commonSpells.* from "../common/commonSpells"
-    import basicSpells.* from "../common/basicSpells"
+    import Types.* from "../quint/systems/common/types"
+    import commonSpells.* from "../quint/systems/common/commonSpells"
+    import basicSpells.* from "../quint/systems/common/basicSpells"
 
     pure val KV_MAX_SIZE: int = 20
     type Client = int
     type Replica = int
 
     // KV State
+    var history: Set[Message]               // Written Messages
     var kv: Replica -> (int -> int)        // per-replica key-value maps
     var lastWrite: Client -> (int -> int)  // client’s most recent writes
     var visibleReplicas: Client -> Set[Replica] // TODO: handle visibility of replicas to clients
@@ -26,7 +27,13 @@ module BaseKV {
         lastWrite' = CLIENTS.map(c => (c, Set().setToMap())).setToMap(),
 
         // Each client initially can see all replicas
-        visibleReplicas' = CLIENTS.map(c => (c, REPLICAS)).setToMap()
+        visibleReplicas' = CLIENTS.map(c => (c, REPLICAS)).setToMap(),
+
+        history' = Set(),
+    }
+
+    action init = all {
+        initKV
     }
 
     // --- Actions ---
@@ -34,7 +41,9 @@ module BaseKV {
     action write(m: Message, r: Replica): bool = all {
         require(r.in(kv.keys())),
         require(lastWrite.values().forall(clientMap => not(clientMap.keys().contains(m.key)))), // Unique key
+        
         kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
+        history' = history.union(Set(m)),
         lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).put(m.key, m.value)),
         visibleReplicas' = visibleReplicas
     }
@@ -44,18 +53,10 @@ module BaseKV {
         require(r.in(visibleReplicas.get(m.client))),
         kv' = kv,
         lastWrite' = lastWrite,
+        history' = history,
         visibleReplicas' = visibleReplicas,
         // out = kv.get(r).getOrElse(m.key, -1),
     }
-
-    // Sync replicas for specified key
-    // action sync(m: Message, src: Replica, dst: Replica): bool = all {
-    //     require(src.in(kv.keys()) and dst.in(kv.keys())),
-    //     require(m.key.in(kv.get(src).keys())),
-    //     kv' = kv.put(dst, kv.get(dst).put(m.key, kv.get(src).get(m.key))),
-    //     lastWrite' = lastWrite,
-    //     visibleReplicas' = visibleReplicas,
-    // }
 
     action sync(src: Replica, dst: Replica): bool = all {
         require(src.in(kv.keys()) and dst.in(kv.keys())),
@@ -65,6 +66,7 @@ module BaseKV {
             .fold(kv, (acc, k) => acc.put(dst, acc.get(dst).put(k, kv.get(src).get(k)))), 
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
+        history' = history,
     }
 
     action delete(m: Message, r: Replica): bool = all {
@@ -75,15 +77,43 @@ module BaseKV {
             m.client,
             lastWrite.get(m.client).put(m.key, -1)
         ),
-        visibleReplicas' = visibleReplicas
+        visibleReplicas' = visibleReplicas,
+        history' = history.setRemove(m),
     }
 
-    // TODO: deletion from all replicas?
-    // action delete(m: Message): bool = all {
-    //     kv' = kv.map(k => k._2).(r, kv.get(r).mapRemove(m.key)),
-    //     lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).mapRemove(m.key)),
-    //     visibleReplicas' = visibleReplicas
-    // }
+    action allUnchanged = all {
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        history' = history
+    }
+    
+    action step = {
+        nondet id: int = VALUES.oneOf()
+        nondet k: int = VALUES.oneOf()
+        nondet v: int = VALUES.oneOf()
+        nondet client: int = CLIENTS.oneOf()
+        nondet replica: int = REPLICAS.oneOf()
+        nondet recipients: Set[int] = CONSUMERS.oneOf()
+        nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()
+        
+        val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
+        val keySet: Set[int] = kv.get(replica).keys()
+
+        any {
+            write(input, replica),
+            read(input, replica, -1),
+            sync(replica, dst),
+            match getHead(keySet) {
+                | Some(k) => match history.find(h => h.key == k) {
+                    | Some(m) => delete(m, replica)
+                    | None => allUnchanged
+                }
+                | None => allUnchanged
+            }
+        }
+    }
+
 
     val kv_view: int -> int =
         // Convert each inner map to a set of (key, value) pairs, then flatten

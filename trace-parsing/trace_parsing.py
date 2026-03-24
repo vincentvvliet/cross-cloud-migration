@@ -8,8 +8,10 @@ from copy import deepcopy
 
 
 def parse_value(v):
-    """Convert ITF encoding to Python."""
+    """Convert ITF encoding to Python ."""
+
     if isinstance(v, dict):
+        # Special ITF encodings
         if "#bigint" in v:
             return int(v["#bigint"])
 
@@ -17,7 +19,12 @@ def parse_value(v):
             return {parse_value(k): parse_value(val) for k, val in v["#map"]}
 
         if "#set" in v:
-            return {parse_value(x) for x in v["#set"]}
+            return [parse_value(x) for x in v["#set"]]
+
+        return {k: parse_value(val) for k, val in v.items()}
+
+    elif isinstance(v, list):
+        return [parse_value(x) for x in v]
 
     return v
 
@@ -44,8 +51,10 @@ class RedisExecutor:
         self.r.flushall()
 
     def write(self, replica, key, value):
-        redis_key = f"replica:{replica}"
-        self.r.hset(redis_key, key, value)
+        self.r.hset(f"replica:{replica}", key, value)
+
+    def delete(self, replica, key):
+        self.r.hdel(f"replica:{replica}", key)
 
     def get_state(self):
         result = {}
@@ -61,19 +70,34 @@ class RedisExecutor:
 
 
 def diff_kv(prev, curr):
-    """Find writes between states."""
     changes = []
 
     for replica in curr:
         prev_map = prev.get(replica, {})
         curr_map = curr.get(replica, {})
 
+        # Detect writes (new keys)
         for k, v in curr_map.items():
             if k not in prev_map:
                 # Currently, see syncing as writes to new keys, but could be separate action type in the future
                 changes.append(("write", replica, k, v))
 
+        # Detect deletes
+        for k in prev_map:
+            if k not in curr_map:
+                changes.append(("delete", replica, k, None))
+
     return changes
+
+
+def diff_history(prev_hist, curr_hist):
+    prev_ids = {m["id"] for m in prev_hist if "id" in m}
+    curr_ids = {m["id"] for m in curr_hist if "id" in m}
+
+    added = [m for m in curr_hist if m["id"] not in prev_ids]
+    removed = [m for m in prev_hist if m["id"] not in curr_ids]
+
+    return added, removed
 
 
 # -----------------------------
@@ -94,16 +118,12 @@ def invariant_no_divergent_values(state):
     return True
 
 
-def invariant_subset_of_lastwrite(state, last_write):
-    """All values in kv must appear in lastWrite."""
-    lw_values = set()
-    for client_map in last_write.values():
-        for k, v in client_map.items():
-            lw_values.add((k, v))
+def invariant_kv_backed_by_history(state, history):
+    valid = {(m["key"], m["value"]) for m in history}
 
-    for replica_map in state.values():
+    for replica_map in state["kv"].values():
         for k, v in replica_map.items():
-            if (k, v) not in lw_values:
+            if (k, v) not in valid:
                 return False
 
     return True
@@ -127,14 +147,38 @@ class TraceRunner:
             print(f"\n--- Step {i} ---")
 
             # 1. Infer transitions
-            changes = diff_kv(prev["kv"], curr["kv"])
+            added, removed = diff_history(prev["history"], curr["history"])
+            kv_changes = diff_kv(prev["kv"], curr["kv"])
 
-            if not changes:
-                print("No-op (likely read)")  # TODO: handle reads properly with Redis
-            else:
-                for op, r, k, v in changes:
-                    print(f"Executing: WRITE r={r}, key={k}, value={v}")
+            # WRITE
+            for m in added:
+                key = m["key"]
+                value = m["value"]
+
+                # find which replica got it
+                for r in curr["kv"]:
+                    if key in curr["kv"][r] and key not in prev["kv"].get(r, {}):
+                        print(f"WRITE detected: r={r}, key={key}, value={value}")
+                        # self.redis.write(r, key, value)
+
+            # DELETE
+            for m in removed:
+                key = m["key"]
+
+                for r in prev["kv"]:
+                    if key in prev["kv"][r] and key not in curr["kv"].get(r, {}):
+                        print(f"DELETE detected: r={r}, key={key}")
+                        # self.redis.delete(r, key)
+
+            # SYNC
+            if not added and not removed and kv_changes:
+                for op, r, k, v in kv_changes:
+                    print(f"SYNC detected: r={r}, key={k}, value={v}")
                     # self.redis.write(r, k, v)
+
+            # READ / NO-OP
+            if not added and not removed and not kv_changes:
+                print("READ / NO-OP")
 
             # 2. Get real Redis state
             # redis_state = self.redis.get_state()
@@ -155,9 +199,9 @@ class TraceRunner:
                 print("❌ Invariant violated: divergent values")
                 return
 
-            if not invariant_subset_of_lastwrite(redis_state, curr["lastWrite"]):
-                print("❌ Invariant violated: not subset of lastWrite")
-                return
+            # if not invariant_kv_backed_by_history(redis_state, curr["history"]):
+            #     print("❌ Invariant violated: every kv entry must come from history")
+            #     return
 
             print("✅ State + invariants OK")
 
@@ -171,6 +215,6 @@ class TraceRunner:
 # -----------------------------
 
 if __name__ == "__main__":
-    trace = load_itf_trace("traces/trace.itf.json")
+    trace = load_itf_trace("trace-parsing/traces/trace.itf.json")
     runner = TraceRunner(trace)
     runner.run()

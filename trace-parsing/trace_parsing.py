@@ -130,12 +130,67 @@ def invariant_no_divergent_values(state):
 
 
 def invariant_kv_backed_by_history(state, history):
-    valid = {(m["key"], m["value"]) for m in history}
+    writes = {(m["key"], m["value"]) for m in history}
 
-    for replica_map in state["kv"].values():
+    for replica_map in state.values():
         for k, v in replica_map.items():
-            if (k, v) not in valid:
+            if (k, v) not in writes:
                 return False
+
+    return True
+
+
+# def invariant_no_resurrection(prev_state, curr_state):
+#     for r in prev_state:
+#         prev_keys = set(prev_state[r].keys())
+#         curr_keys = set(curr_state[r].keys())
+
+#         # If a key disappeared and reappears later → violation
+#         # (this needs history to fully enforce)
+#     return True
+
+
+def invariant_sync_only_adds(prev, curr, last_action):
+    if last_action != "sync":
+        # Invariant only holds if sync action was last
+        return True
+
+    for r in prev:
+        if not prev[r].items() <= curr[r].items():
+            return False
+    return True
+
+
+def invariant_eventual_convergence(state):
+    # Only relevant at the end of execution.
+    all_maps = list(state.values())
+    print(all_maps)
+    return all(m == all_maps[0] for m in all_maps)
+
+
+def invariant_last_write_visible(state, last_write):
+    lw = {}
+    for client_map in last_write.values():
+        # LastWrite contains -1 values if item has been deleted.
+        filtered_map = {k: v for k, v in client_map.items() if v >= 0}
+        lw.update(filtered_map)
+
+    for replica_map in state.values():
+        for k, v in replica_map.items():
+            if k in lw and lw[k] != v:
+                return False
+
+    return True
+
+
+def invariant_no_conflicts(state):
+    seen = {}
+
+    for replica_map in state.values():
+        for k, v in replica_map.items():
+            if k in seen and seen[k] != v:
+                return False
+            seen[k] = v
 
     return True
 
@@ -152,6 +207,7 @@ class TraceRunner:
 
     def run(self):
         prev = self.trace[0]
+        last_action = None
 
         for i, curr in enumerate(self.trace[1:], start=1):
             print(f"\n--- Step {i} ---")
@@ -160,7 +216,7 @@ class TraceRunner:
             added, removed = diff_history(prev["history"], curr["history"])
             kv_changes = diff_kv(prev["kv"], curr["kv"])
 
-            # WRITE
+            # History based: WRITE
             for m in added:
                 key = m["key"]
                 value = m["value"]
@@ -170,25 +226,25 @@ class TraceRunner:
                     if key in curr["kv"][r] and key not in prev["kv"].get(r, {}):
                         print(f"WRITE detected: r={r}, key={key}, value={value}")
                         self.redis.write(r, key, value)
+                        last_action = "write"
 
-            # DELETE
-            for m in removed:
-                key = m["key"]
-
-                for r in prev["kv"]:
-                    if key in prev["kv"][r] and key not in curr["kv"].get(r, {}):
-                        print(f"DELETE detected: r={r}, key={key}")
-                        self.redis.delete(r, key)
-
-            # SYNC
+            # KV-based: DELETE OR SYNC
             if not added and not removed and kv_changes:
                 for op, r, k, v in kv_changes:
-                    print(f"SYNC detected: r={r}, key={k}, value={v}")
-                    self.redis.write(r, k, v)
+                    if op == "delete":
+                        print(f"DELETE detected (kv): r={r}, key={k}")
+                        self.redis.delete(r, k)
+                        last_action = "delete"
+
+                    elif op == "write":
+                        print(f"SYNC detected: r={r}, key={k}, value={v}")
+                        self.redis.write(r, k, v)
+                        last_action = "sync"
 
             # READ / NO-OP
             if not added and not removed and not kv_changes:
                 print("READ / NO-OP")
+                last_action = "read"
 
             # 2. Get real Redis state
             expected = curr["kv"]
@@ -206,10 +262,21 @@ class TraceRunner:
                 print("❌ Invariant violated: divergent values")
                 return
 
-            # TODO: handle below once redis state is known (redis integration)
-            # if not invariant_kv_backed_by_history(redis_state, curr["history"]):
-            #     print("❌ Invariant violated: every kv entry must come from history")
-            #     return
+            if not invariant_kv_backed_by_history(redis_state, curr["history"]):
+                print("❌ Invariant violated: every kv entry must come from history")
+                return
+
+            if not invariant_sync_only_adds(prev["kv"], curr["kv"], last_action):
+                print("❌ Invariant violated: sync should only add items")
+                return
+
+            if not invariant_last_write_visible(redis_state, curr["lastWrite"]):
+                print("❌ Invariant violated: all lastWrite values should appear in kv")
+                return
+
+            if not invariant_no_conflicts(redis_state):
+                print("❌ Invariant violated: no conflicts")
+                return
 
             print("✅ State + invariants OK")
 

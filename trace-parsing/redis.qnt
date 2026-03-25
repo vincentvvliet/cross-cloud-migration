@@ -78,7 +78,7 @@ module Redis {
             lastWrite.get(m.client).put(m.key, -1)
         ),
         visibleReplicas' = visibleReplicas,
-        history' = history.setRemove(m),
+        history' = history,
     }
 
     action allUnchanged = all {

@@ -1,4 +1,4 @@
-module BaseKV {
+module Redis {
     import Types.* from "../quint/systems/common/types"
     import commonSpells.* from "../quint/systems/common/commonSpells"
     import basicSpells.* from "../quint/systems/common/basicSpells"

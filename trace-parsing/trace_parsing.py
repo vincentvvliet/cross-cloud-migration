@@ -46,9 +46,16 @@ def load_itf_trace(path):
 
 
 class RedisExecutor:
-    def __init__(self):
+    def __init__(self, initial_kv):
         self.r = redis.Redis(host="localhost", port=6379, decode_responses=True)
         self.r.flushall()
+
+        self.replicas = list(initial_kv.keys())
+
+        for replica in self.replicas:
+            key = f"replica:{replica}"
+            self.r.hset(key, "__init__", 0)
+            self.r.hdel(key, "__init__")
 
     def write(self, replica, key, value):
         self.r.hset(f"replica:{replica}", key, value)
@@ -100,6 +107,10 @@ def diff_history(prev_hist, curr_hist):
     return added, removed
 
 
+def normalize_state(state, replicas):
+    return {r: state.get(r, {}) for r in replicas}
+
+
 # -----------------------------
 # INVARIANTS
 # -----------------------------
@@ -137,8 +148,7 @@ def invariant_kv_backed_by_history(state, history):
 class TraceRunner:
     def __init__(self, trace):
         self.trace = trace
-        # self.redis = RedisExecutor()
-        self.redis = None  # TODO: enable after syncing
+        self.redis = RedisExecutor(trace[0]["kv"])
 
     def run(self):
         prev = self.trace[0]
@@ -159,7 +169,7 @@ class TraceRunner:
                 for r in curr["kv"]:
                     if key in curr["kv"][r] and key not in prev["kv"].get(r, {}):
                         print(f"WRITE detected: r={r}, key={key}, value={value}")
-                        # self.redis.write(r, key, value)
+                        self.redis.write(r, key, value)
 
             # DELETE
             for m in removed:
@@ -168,26 +178,23 @@ class TraceRunner:
                 for r in prev["kv"]:
                     if key in prev["kv"][r] and key not in curr["kv"].get(r, {}):
                         print(f"DELETE detected: r={r}, key={key}")
-                        # self.redis.delete(r, key)
+                        self.redis.delete(r, key)
 
             # SYNC
             if not added and not removed and kv_changes:
                 for op, r, k, v in kv_changes:
                     print(f"SYNC detected: r={r}, key={k}, value={v}")
-                    # self.redis.write(r, k, v)
+                    self.redis.write(r, k, v)
 
             # READ / NO-OP
             if not added and not removed and not kv_changes:
                 print("READ / NO-OP")
 
             # 2. Get real Redis state
-            # redis_state = self.redis.get_state()
-            redis_state = deepcopy(
-                curr["kv"]
-            )  # TODO: replace with actual Redis state after syncing
+            expected = curr["kv"]
+            redis_state = normalize_state(self.redis.get_state(), expected.keys())
 
             # 3. Compare with model
-            expected = curr["kv"]
             if redis_state != expected:
                 print("❌ STATE MISMATCH")
                 print("Expected:", expected)
@@ -199,11 +206,14 @@ class TraceRunner:
                 print("❌ Invariant violated: divergent values")
                 return
 
+            # TODO: handle below once redis state is known (redis integration)
             # if not invariant_kv_backed_by_history(redis_state, curr["history"]):
             #     print("❌ Invariant violated: every kv entry must come from history")
             #     return
 
             print("✅ State + invariants OK")
+
+            print("Redis state:", redis_state)
 
             prev = curr
 

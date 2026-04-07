@@ -111,33 +111,50 @@ def normalize_state(state, replicas):
     return {r: state.get(r, {}) for r in replicas}
 
 
+def make_feedback(error_type, **kwargs):
+    return {"error_type": error_type, **kwargs}
+
+
 # -----------------------------
 # INVARIANTS
 # -----------------------------
 
 
-def invariant_no_divergent_values(state):
+def invariant_no_conflicts(state):
     """Same key should not have different values across replicas."""
     seen = {}
 
-    for replica, kv in state.items():
-        for k, v in kv.items():
-            if k in seen and seen[k] != v:
-                return False
-            seen[k] = v
+    for replica_id, replica in state.items():
+        for k, v in replica.items():
+            if k in seen and seen[k]["value"] != v:
+                return False, {
+                    "key": k,
+                    "conflict": {
+                        "replica_1": seen[k]["replica"],
+                        "value_1": seen[k]["value"],
+                        "replica_2": replica_id,
+                        "value_2": v,
+                    },
+                }
+            seen[k] = {"value": v, "replica": replica_id}
 
-    return True
+    return True, None
 
 
 def invariant_kv_backed_by_history(state, history):
     writes = {(m["key"], m["value"]) for m in history}
 
-    for replica_map in state.values():
+    for replica_id, replica_map in state.items():
         for k, v in replica_map.items():
             if (k, v) not in writes:
-                return False
+                return False, {
+                    "replica": replica_id,
+                    "key": k,
+                    "value": v,
+                    "history_writes": list(writes),
+                }
 
-    return True
+    return True, None
 
 
 # def invariant_no_resurrection(prev_state, curr_state):
@@ -153,12 +170,13 @@ def invariant_kv_backed_by_history(state, history):
 def invariant_sync_only_adds(prev, curr, last_action):
     if last_action != "sync":
         # Invariant only holds if sync action was last
-        return True
+        return True, None
 
     for r in prev:
         if not prev[r].items() <= curr[r].items():
-            return False
-    return True
+            return False, {"replica": r, "prev": prev[r], "curr": curr[r]}
+
+    return True, None
 
 
 def invariant_eventual_convergence(state):
@@ -175,24 +193,17 @@ def invariant_last_write_visible(state, last_write):
         filtered_map = {k: v for k, v in client_map.items() if v >= 0}
         lw.update(filtered_map)
 
-    for replica_map in state.values():
+    for replica_id, replica_map in state.items():
         for k, v in replica_map.items():
             if k in lw and lw[k] != v:
-                return False
+                return False, {
+                    "replica": replica_id,
+                    "key": k,
+                    "expected": lw[k],
+                    "actual": v,
+                }
 
-    return True
-
-
-def invariant_no_conflicts(state):
-    seen = {}
-
-    for replica_map in state.values():
-        for k, v in replica_map.items():
-            if k in seen and seen[k] != v:
-                return False
-            seen[k] = v
-
-    return True
+    return True, None
 
 
 # -----------------------------
@@ -210,81 +221,83 @@ class TraceRunner:
         last_action = None
 
         for i, curr in enumerate(self.trace[1:], start=1):
-            print(f"\n--- Step {i} ---")
 
             # 1. Infer transitions
             added, removed = diff_history(prev["history"], curr["history"])
             kv_changes = diff_kv(prev["kv"], curr["kv"])
 
-            # History based: WRITE
+            # APPLY OPERATIONS
             for m in added:
                 key = m["key"]
                 value = m["value"]
 
-                # find which replica got it
                 for r in curr["kv"]:
                     if key in curr["kv"][r] and key not in prev["kv"].get(r, {}):
-                        print(f"WRITE detected: r={r}, key={key}, value={value}")
                         self.redis.write(r, key, value)
                         last_action = "write"
 
-            # KV-based: DELETE OR SYNC
             if not added and not removed and kv_changes:
                 for op, r, k, v in kv_changes:
                     if op == "delete":
-                        print(f"DELETE detected (kv): r={r}, key={k}")
                         self.redis.delete(r, k)
                         last_action = "delete"
-
                     elif op == "write":
-                        print(f"SYNC detected: r={r}, key={k}, value={v}")
                         self.redis.write(r, k, v)
                         last_action = "sync"
 
-            # READ / NO-OP
             if not added and not removed and not kv_changes:
-                print("READ / NO-OP")
                 last_action = "read"
 
-            # 2. Get real Redis state
+            # 2. Compare state
             expected = curr["kv"]
             redis_state = normalize_state(self.redis.get_state(), expected.keys())
 
-            # 3. Compare with model
             if redis_state != expected:
-                print("❌ STATE MISMATCH")
-                print("Expected:", expected)
-                print("Got     :", redis_state)
-                return
+                return make_feedback(
+                    "state_mismatch", step=i, expected=expected, actual=redis_state
+                )
 
-            # 4. Check invariants
-            if not invariant_no_divergent_values(redis_state):
-                print("❌ Invariant violated: divergent values")
-                return
+            # 3. Invariants
 
-            if not invariant_kv_backed_by_history(redis_state, curr["history"]):
-                print("❌ Invariant violated: every kv entry must come from history")
-                return
+            ok, details = invariant_no_conflicts(redis_state)
+            if not ok:
+                return make_feedback(
+                    "invariant_violation",
+                    step=i,
+                    invariant="no_conflicts",
+                    details=details,
+                )
 
-            if not invariant_sync_only_adds(prev["kv"], curr["kv"], last_action):
-                print("❌ Invariant violated: sync should only add items")
-                return
+            ok, details = invariant_kv_backed_by_history(redis_state, curr["history"])
+            if not ok:
+                return make_feedback(
+                    "invariant_violation",
+                    step=i,
+                    invariant="kv_backed_by_history",
+                    details=details,
+                )
 
-            if not invariant_last_write_visible(redis_state, curr["lastWrite"]):
-                print("❌ Invariant violated: all lastWrite values should appear in kv")
-                return
+            ok, details = invariant_sync_only_adds(prev["kv"], curr["kv"], last_action)
+            if not ok:
+                return make_feedback(
+                    "invariant_violation",
+                    step=i,
+                    invariant="sync_only_adds",
+                    details=details,
+                )
 
-            if not invariant_no_conflicts(redis_state):
-                print("❌ Invariant violated: no conflicts")
-                return
-
-            print("✅ State + invariants OK")
-
-            print("Redis state:", redis_state)
+            ok, details = invariant_last_write_visible(redis_state, curr["lastWrite"])
+            if not ok:
+                return make_feedback(
+                    "invariant_violation",
+                    step=i,
+                    invariant="last_write_visible",
+                    details=details,
+                )
 
             prev = curr
 
-        print("\n🎉 Trace successfully validated!")
+        return {"status": "success"}
 
 
 # -----------------------------
@@ -294,4 +307,6 @@ class TraceRunner:
 if __name__ == "__main__":
     trace = load_itf_trace("trace-parsing/traces/trace.itf.json")
     runner = TraceRunner(trace)
-    runner.run()
+    result = runner.run()
+
+    print(json.dumps(result, indent=2))

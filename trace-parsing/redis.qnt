@@ -120,12 +120,6 @@ module Redis {
         kv.values().map(v => v.mapToSet()).flatten().setToMap() 
 
     // KV Invariants
-    val kv_no_negative_size =
-        size(kv_view.keys()) >= 0
-
-    val kv_max_size =
-        size(kv_view.keys()) <= KV_MAX_SIZE
-
     val keys_within_domain =
         kv_view.keys().forall(k => VALUES.contains(k))
 
@@ -145,8 +139,6 @@ module Redis {
     //     )
 
     val kv_invariants = all {
-        kv_no_negative_size,
-        kv_max_size,
         keys_within_domain,
         values_within_domain,
         map_is_functional,

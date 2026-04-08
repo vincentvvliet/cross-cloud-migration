@@ -1,13 +1,12 @@
 source:
+  composition:
+    name: KVQueue
   systems:
     kv: DynamoDB
-    queue: RedisQueue
-  composition:
-    name: KVQueue
-
+    queue: Kafka
 target:
-  systems:
-    kv: Redis
-    queue: RabbitMQ
   composition:
     name: KVQueue
+  systems:
+    kv: DynamoDB
+    queue: RabbitMQ

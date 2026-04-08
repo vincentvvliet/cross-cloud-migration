@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import Redis.* from "../systems/kv/redis"
+    import DynamoDB.* from "../systems/kv/dynamoDB"
     import RabbitMQ.* from "../systems/queue/rabbitMQ"
     import KVQueue.* from "../systems/compositions/kvQueue"
 

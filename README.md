@@ -7,6 +7,12 @@ Running the system works as follows:
     - systems: the two systems that make up the composition
 - Run `scripts/run.sh`
 
+## Scripts
+- `scripts/run.sh`: run system in config.yaml on its own invariants
+- `scripts/run.sh compat`: run target system in compat.yaml against the invariants of source in compat.yaml
+- `scripts/redis-experiment.sh`: run redis experiment with default Quint parameters
+- `scripts/redis-experiment.sh long`: run redis experiment with sample size `1000` steps
+
 #### Example config.yaml
 ```
 composition:

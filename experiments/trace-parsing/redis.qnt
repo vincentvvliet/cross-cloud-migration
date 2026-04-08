@@ -1,7 +1,7 @@
 module Redis {
-    import Types.* from "../quint/systems/common/types"
-    import commonSpells.* from "../quint/systems/common/commonSpells"
-    import basicSpells.* from "../quint/systems/common/basicSpells"
+    import Types.* from "../../quint/systems/common/types"
+    import commonSpells.* from "../../quint/systems/common/commonSpells"
+    import basicSpells.* from "../../quint/systems/common/basicSpells"
 
     pure val KV_MAX_SIZE: int = 20
     type Client = int

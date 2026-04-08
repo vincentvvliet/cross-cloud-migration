@@ -305,7 +305,7 @@ class TraceRunner:
 # -----------------------------
 
 if __name__ == "__main__":
-    trace = load_itf_trace("trace-parsing/traces/trace.itf.json")
+    trace = load_itf_trace("experiments/trace-parsing/traces/trace.itf.json")
     runner = TraceRunner(trace)
     result = runner.run()
 

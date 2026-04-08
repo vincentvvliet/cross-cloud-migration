@@ -67,7 +67,7 @@ module BaseKV {
         visibleReplicas' = visibleReplicas,
     }
 
-    action delete(m: Message, r: Replica): bool = all {
+    action deleteKV(m: Message, r: Replica): bool = all {
         require(r.in(kv.keys())),
 
         kv' = kv.put(r, kv.get(r).mapRemove(m.key)),

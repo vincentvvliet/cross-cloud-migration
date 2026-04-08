@@ -1,4 +1,4 @@
-module Redis {
+module RedisQueue {
     import BaseQueue.* from "baseQueue"
     export BaseQueue.* 
 

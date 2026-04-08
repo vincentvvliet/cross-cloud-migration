@@ -3,17 +3,25 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import BaseQueue.* from "../systems/queue/baseQueue"
-    import BaseKV.* from "../systems/kv/baseKV"
+    import Redis.* from "../systems/kv/redis"
+    import RabbitMQ.* from "../systems/queue/rabbitMQ"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
     // Unified Init
     action init = all {
-        initQueue,
         initKV,
+        initQueue,
         initComposition
     }
 
+    action compositeSync(r1: Replica, r2: Replica): bool = all {
+        sync(r1, r2),
+        queue' = queue,
+        inflight' = inflight,
+        history' = history,
+        delivered' = delivered,
+        processed' = processed
+    }
     action compositeEnqueue(m: Message): bool = all {
         enqueue(m),
         kv' = kv,
@@ -23,6 +31,13 @@ module System {
     }
     action compositeDeliver(m: Message): bool = all {
         deliver(m),
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        processed' = processed
+    }
+    action compositeDelete(m: Message): bool = all {
+        delete(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -38,14 +53,19 @@ module System {
         nondet client: int = CLIENTS.oneOf()
         nondet replica: int = REPLICAS.oneOf()
         nondet recipients: Set[int] = CONSUMERS.oneOf()
-        
+        nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()
 
         val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
 
         any {
+            compositeSync(replica, dst),
             compositeEnqueue(input),
             match getHead(queue) {
                 | Some(m) => compositeDeliver(m)
+                | None => allUnchanged
+            },
+            match getHead(queue) {
+                | Some(m) => compositeDelete(m)
                 | None => allUnchanged
             },
             match getHead(inflight) {
@@ -58,8 +78,8 @@ module System {
 
     // Base Invariants
     val base_invariants = all {
-        queue_invariants,
         kv_invariants,
+        queue_invariants,
         composition_invariants,    
     }   
 

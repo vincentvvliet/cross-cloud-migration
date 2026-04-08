@@ -72,6 +72,48 @@ def compile_config() -> dict:
     return compiled
 
 
+def load_compat_config(path="config/compat.yaml"):
+    """
+    Load a compatibility config with:
+    source: { systems: ..., composition: ... }
+    target: { systems: ..., composition: ... }
+
+    Returns:
+        (source_caps, target_caps)
+    """
+
+    raw = load_yaml(Path(path))
+
+    def build_caps(section):
+        compiled = {}
+
+        compiled["composition"] = raw[section]["composition"]
+        compiled["systems"] = {}
+
+        for system_type, system_name in raw[section]["systems"].items():
+            system_config = resolve_system_config(system_type, system_name)
+
+            compiled["systems"][system_type] = {
+                "type": system_name,
+                **system_config,
+            }
+
+        return parse_config_dict(compiled)
+
+    return build_caps("source"), build_caps("target")
+
+
+def parse_config_dict(data: dict):
+    """Same as parse_config but operates on dict instead of file."""
+    for s in data["systems"].values():
+        if "delivery" in s:
+            s["delivery"] = map_delivery(s["delivery"])
+        if "consistency" in s:
+            s["consistency"] = map_consistency(s["consistency"])
+
+    return data
+
+
 def load_config():
     compiled = compile_config()
 

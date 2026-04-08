@@ -19,8 +19,8 @@
     },
     "init": "initQueue"
   }, 
-  "Redis": {
-    "import": "import Redis.* from \"../systems/queue/redis\"",
+  "RedisQueue": {
+    "import": "import RedisQueue.* from \"../systems/queue/redisQueue\"",
     "state": ["queue", "inflight", "history", "delivered"],
     "type": "queue",
     "actions": {
@@ -156,6 +156,15 @@
   },
   "MongoDB": {
     "import": "import MongoDB.* from \"../systems/kv/MongoDB\"",
+    "state": ["kv", "lastWrite", "visibleReplicas"],
+    "type": "kv",
+    "actions": {
+      "sync": { "arg_type": "sync", "composite": true, "input": "replica, dst"}
+    },
+    "init": "initKV"
+  },
+  "Redis": {
+    "import": "import Redis.* from \"../systems/kv/redis\"",
     "state": ["kv", "lastWrite", "visibleReplicas"],
     "type": "kv",
     "actions": {

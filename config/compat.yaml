@@ -1,0 +1,13 @@
+source:
+  systems:
+    kv: DynamoDB
+    queue: RedisQueue
+  composition:
+    name: KVQueue
+
+target:
+  systems:
+    kv: Redis
+    queue: RabbitMQ
+  composition:
+    name: KVQueue

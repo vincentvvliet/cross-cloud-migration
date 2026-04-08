@@ -1,0 +1,641 @@
+{
+  "experiments": [
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_2e370f65/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_2e370f65/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_2e370f65/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n                                 ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_2e370f65/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_2e370f65/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_2e370f65/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_2e370f65/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_59a46731/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_59a46731/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_59a46731/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n                                 ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_59a46731/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_59a46731/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_59a46731/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_59a46731/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_a6832c2f/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_a6832c2f/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_a6832c2f/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n                                 ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_a6832c2f/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_a6832c2f/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_a6832c2f/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_a6832c2f/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_08f7a806/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_08f7a806/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_08f7a806/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n                                 ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_08f7a806/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_08f7a806/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_08f7a806/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_08f7a806/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_b59be281/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_b59be281/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_b59be281/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_b59be281/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_b59be281/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_b59be281/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_b59be281/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_6196a0b9/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_6196a0b9/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_6196a0b9/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_6196a0b9/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_6196a0b9/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_6196a0b9/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_6196a0b9/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_1b4a77d4/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_3e710e15/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_3e710e15/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_3e710e15/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_3e710e15/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_3e710e15/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_3e710e15/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_3e710e15/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_e05bd9d3/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_39ae9193/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_39ae9193/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_39ae9193/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_39ae9193/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_39ae9193/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_39ae9193/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_39ae9193/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_d54ffe45/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_d54ffe45/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_d54ffe45/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n           ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_d54ffe45/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_d54ffe45/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_d54ffe45/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_d54ffe45/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_d8d43735/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_d8d43735/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_d8d43735/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n                                 ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_d8d43735/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_d8d43735/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_d8d43735/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_d8d43735/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "DynamoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Memcached",
+        "queue": "BaseQueue"
+      },
+      "status": "error",
+      "violations": false,
+      "error": "Traceback (most recent call last):\n  File \"/private/tmp/quint_exp_1d35b552/generator/main.py\", line 77, in <module>\n    main()\n    ~~~~^^\n  File \"/private/tmp/quint_exp_1d35b552/generator/main.py\", line 56, in main\n    caps_source, caps_target = load_compat_config(args.compat_file)\n                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_1d35b552/generator/parse_config.py\", line 103, in load_compat_config\n    return build_caps(\"source\"), build_caps(\"target\")\n                                 ~~~~~~~~~~^^^^^^^^^^\n  File \"/private/tmp/quint_exp_1d35b552/generator/parse_config.py\", line 101, in build_caps\n    return parse_config_dict(compiled)\n  File \"/private/tmp/quint_exp_1d35b552/generator/parse_config.py\", line 112, in parse_config_dict\n    s[\"consistency\"] = map_consistency(s[\"consistency\"])\n                       ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/quint_exp_1d35b552/generator/parse_config.py\", line 29, in map_consistency\n    return Consistency.from_str(s).value\n           ~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/private/tmp/quint_exp_1d35b552/generator/capabilities.py\", line 26, in from_str\n    return {\n           ~\n    ...<2 lines>...\n        \"tunable\": Consistency.TUNABLE,\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    }[s]\n    ~^^^\nKeyError: 'none'\n"
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "BaseKV",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "CosmosDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Cassandra",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "MongoDB",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    },
+    {
+      "source": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "target": {
+        "kv": "Redis",
+        "queue": "BaseQueue"
+      },
+      "status": "pass",
+      "violations": false,
+      "error": null
+    }
+  ]
+}

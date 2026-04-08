@@ -1,7 +1,7 @@
 type: RabbitMQ
-delivery: at_least_once
+delivery: at_most_once
 ordering: first_in_first_out
-# delivery: at_most_once
+# delivery: at_least_once
 # ordering: none
 messaging_model: p2p
 max_size: 10000

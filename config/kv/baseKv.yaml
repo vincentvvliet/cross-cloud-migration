@@ -2,5 +2,5 @@ type: BaseKV
 consistency: strong
 conditional_writes: true
 idempotent_writes: true
-replicas: false
+replicas: true
 max_size: 100

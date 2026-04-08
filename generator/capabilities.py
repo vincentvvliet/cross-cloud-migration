@@ -20,6 +20,7 @@ class Consistency(IntEnum):
     EVENTUAL = 0
     STRONG = 1
     TUNABLE = 2
+    NONE = 3
 
     @staticmethod
     def from_str(s: str) -> "Consistency":
@@ -27,6 +28,7 @@ class Consistency(IntEnum):
             "eventual": Consistency.EVENTUAL,
             "strong": Consistency.STRONG,
             "tunable": Consistency.TUNABLE,
+            "none": Consistency.NONE,
         }[s]
 
 

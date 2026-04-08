@@ -6,7 +6,7 @@ module GeneratedInvariants {
     import basicSpells.* from "../systems/common/basicSpells"
     import KVQueue.* from "../systems/compositions/kvQueue"
 		import Kafka.* from "../systems/queue/kafka"
-		import DynamoDB.* from "../systems/kv/dynamoDB"
+		import BaseKV.* from "../systems/kv/baseKV"
 
     val processed_from_queue = processed.forall(p => history.exists(m => m.id == p._2.id))
 

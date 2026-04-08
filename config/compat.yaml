@@ -2,11 +2,11 @@ source:
   composition:
     name: KVQueue
   systems:
-    kv: DynamoDB
+    kv: BaseKV
     queue: Kafka
 target:
   composition:
     name: KVQueue
   systems:
-    kv: DynamoDB
+    kv: BaseKV
     queue: RabbitMQ

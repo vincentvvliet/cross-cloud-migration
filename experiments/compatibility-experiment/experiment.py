@@ -5,28 +5,32 @@ import yaml
 import shutil
 import uuid
 from concurrent.futures import ProcessPoolExecutor, as_completed
+
 from load_systems import import_systems
 
 CONFIG_ROOT = Path("config")
-RESULTS_PATH = Path(
-    "experiments/compatibility-experiment/results/compatibility_results.json"
-)
+RESULTS_DIR = Path("experiments/compatibility-experiment/results/")
+RESULTS_DIR.mkdir(exist_ok=True)
 
-KV_SYSTEMS = ["DynamoDB", "Redis", "Cassandra"]
-QUEUE_SYSTEMS = ["Kafka", "RabbitMQ", "SQS"]
+_, QUEUE_SYSTEMS, KV_SYSTEMS = import_systems()
 
-_, QUEUE_SYSTEMS_1, KV_SYSTEMS_1 = import_systems()
-print(QUEUE_SYSTEMS_1)
-print(KV_SYSTEMS_1)
+# Filter Base Systems
+QUEUE_SYSTEMS = [q for q in QUEUE_SYSTEMS if q != "BaseQueue"]
+KV_SYSTEMS = [k for k in KV_SYSTEMS if k != "BaseKV"]
 
-MAX_WORKERS = 4  # adjust based on CPU
+FIXED_QUEUE = "BaseQueue"
+FIXED_KV = "BaseKV"
+
+MAX_WORKERS = 4
 
 
+# -----------------------------
+# ISOLATION
+# -----------------------------
 def create_isolated_env(run_id):
     base = Path(f"/tmp/quint_exp_{run_id}")
     base.mkdir(parents=True, exist_ok=True)
 
-    # Copy necessary folders
     shutil.copytree("generator", base / "generator")
     shutil.copytree("quint", base / "quint")
     shutil.copytree("config", base / "config")
@@ -51,7 +55,10 @@ def write_compat_config(base, source_kv, source_q, target_kv, target_q):
         yaml.dump(compat, f)
 
 
-def run_single_experiment(params):
+# -----------------------------
+# RUN SINGLE
+# -----------------------------
+def run_single(params):
     source_kv, source_q, target_kv, target_q = params
     run_id = str(uuid.uuid4())[:8]
 
@@ -60,7 +67,6 @@ def run_single_experiment(params):
 
         write_compat_config(base, source_kv, source_q, target_kv, target_q)
 
-        # --- Run generator ---
         gen = subprocess.run(
             ["python", "generator/main.py", "--compat"],
             cwd=base,
@@ -70,16 +76,9 @@ def run_single_experiment(params):
 
         if gen.returncode != 0:
             return build_result(
-                source_kv,
-                source_q,
-                target_kv,
-                target_q,
-                "error",
-                False,
-                gen.stderr,
+                source_kv, source_q, target_kv, target_q, "error", False, gen.stderr
             )
 
-        # --- Run Quint ---
         quint = subprocess.run(
             [
                 "quint",
@@ -93,44 +92,17 @@ def run_single_experiment(params):
             text=True,
         )
 
-        output = quint.stdout + quint.stderr
-
         if quint.returncode != 0:
-            return build_result(
-                source_kv,
-                source_q,
-                target_kv,
-                target_q,
-                "fail",
-                True,
-                None,
-                output,
-            )
+            return build_result(source_kv, source_q, target_kv, target_q, "fail", True)
 
-        return build_result(
-            source_kv,
-            source_q,
-            target_kv,
-            target_q,
-            "pass",
-            False,
-            None,
-            output,
-        )
+        return build_result(source_kv, source_q, target_kv, target_q, "pass", False)
 
     except Exception as e:
         return build_result(
-            source_kv,
-            source_q,
-            target_kv,
-            target_q,
-            "crash",
-            False,
-            str(e),
+            source_kv, source_q, target_kv, target_q, "crash", False, str(e)
         )
 
     finally:
-        # Cleanup
         try:
             shutil.rmtree(base)
         except:
@@ -138,14 +110,7 @@ def run_single_experiment(params):
 
 
 def build_result(
-    source_kv,
-    source_q,
-    target_kv,
-    target_q,
-    status,
-    violations,
-    error=None,
-    output=None,
+    source_kv, source_q, target_kv, target_q, status, violations, error=None
 ):
     return {
         "source": {"kv": source_kv, "queue": source_q},
@@ -153,36 +118,70 @@ def build_result(
         "status": status,
         "violations": violations,
         "error": error,
-        "raw_output": output,
     }
 
 
-def main():
-    RESULTS_PATH.parent.mkdir(exist_ok=True)
+# -----------------------------
+# EXPERIMENT BUILDERS
+# -----------------------------
+def build_kv_tasks():
+    tasks = []
+    for s_kv in KV_SYSTEMS:
+        for t_kv in KV_SYSTEMS:
+            if s_kv == t_kv:
+                # Skip same-to-same
+                continue
+            tasks.append((s_kv, FIXED_QUEUE, t_kv, FIXED_QUEUE))
+    return tasks
 
-    tasks = [
-        (s_kv, s_q, t_kv, t_q)
-        for s_kv in KV_SYSTEMS
-        for s_q in QUEUE_SYSTEMS
-        for t_kv in KV_SYSTEMS
-        for t_q in QUEUE_SYSTEMS
-    ]
 
+def build_queue_tasks():
+    tasks = []
+    for s_q in QUEUE_SYSTEMS:
+        for t_q in QUEUE_SYSTEMS:
+            if s_q == t_q:
+                # Skip same-to-same
+                continue
+            tasks.append((FIXED_KV, s_q, FIXED_KV, t_q))
+    return tasks
+
+
+# -----------------------------
+# EXECUTION
+# -----------------------------
+def run_tasks(tasks, label):
     results = []
 
     with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(run_single_experiment, t): t for t in tasks}
+        futures = {executor.submit(run_single, t): t for t in tasks}
 
         for i, future in enumerate(as_completed(futures), 1):
             result = future.result()
-            print(f"[{i}/{len(tasks)}] {result['status']}")
-
+            print(f"[{label}] {i}/{len(tasks)} → {result['status']}")
             results.append(result)
 
-    with open(RESULTS_PATH, "w") as f:
-        json.dump({"experiments": results}, f, indent=2)
+    return results
 
-    print(f"\nSaved results to {RESULTS_PATH}")
+
+# -----------------------------
+# MAIN
+# -----------------------------
+def main():
+    print("=== KV COMPATIBILITY ===")
+    kv_results = run_tasks(build_kv_tasks(), "KV")
+
+    with open(RESULTS_DIR / "kv_results.json", "w") as f:
+        json.dump({"experiments": kv_results}, f, indent=2)
+
+    print("\n=== QUEUE COMPATIBILITY ===")
+    queue_results = run_tasks(build_queue_tasks(), "QUEUE")
+
+    with open(RESULTS_DIR / "queue_results.json", "w") as f:
+        json.dump({"experiments": queue_results}, f, indent=2)
+
+    print("\nSaved results:")
+    print(" - experiments/compatibility-experiment/results/kv_results.json")
+    print(" - experiments/compatibility-experiment/results/queue_results.json")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ module Types {
     pure val QUEUE_MAX_SIZE: int = 20
 
     // Functionality without replicas is the same with a single replica that all clients can see
-    pure val REPLICAS: Set[int] = Set(1)
+    pure val REPLICAS: Set[int] = 1.to(3)
     pure val CLIENTS: Set[int] = Set(1)
     pure val CONSUMERS: Set[Set[int]] = Set(Set(1))
 

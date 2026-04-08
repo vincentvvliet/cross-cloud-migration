@@ -3,4 +3,4 @@ consistency: strong # optionally, otherwise eventual
 conditional_writes: true 
 idempotent_writes: true 
 replicas: true
-max_size: 100 # TODO: check
+max_size: 100

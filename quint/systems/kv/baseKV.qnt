@@ -33,6 +33,7 @@ module BaseKV {
     // For combined system, writing is handled in kvQueue.process()
     action write(m: Message, r: Replica): bool = all {
         require(r.in(kv.keys())),
+        require(lastWrite.values().forall(clientMap => not(clientMap.keys().contains(m.key)))), // Unique key
         kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
         lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).put(m.key, m.value)),
         visibleReplicas' = visibleReplicas
@@ -66,7 +67,24 @@ module BaseKV {
         visibleReplicas' = visibleReplicas,
     }
 
-    // TODO: decide how to define kvView in the presence of multiple replicas. For now, we just take the view of one replica (the first one in the set of replicas).
+    action delete(m: Message, r: Replica): bool = all {
+        require(r.in(kv.keys())),
+
+        kv' = kv.put(r, kv.get(r).mapRemove(m.key)),
+        lastWrite' = lastWrite.put(
+            m.client,
+            lastWrite.get(m.client).put(m.key, -1)
+        ),
+        visibleReplicas' = visibleReplicas
+    }
+
+    // TODO: deletion from all replicas?
+    // action delete(m: Message): bool = all {
+    //     kv' = kv.map(k => k._2).(r, kv.get(r).mapRemove(m.key)),
+    //     lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).mapRemove(m.key)),
+    //     visibleReplicas' = visibleReplicas
+    // }
+
     val kv_view: int -> int =
         // Convert each inner map to a set of (key, value) pairs, then flatten
         kv.values().map(v => v.mapToSet()).flatten().setToMap() 
@@ -90,6 +108,11 @@ module BaseKV {
         kv_view.keys().forall(k =>
             size(mapToSet(kv_view).filter(e => e._1 == k)) <= 1
         )
+    
+    // val all_kv_values_in_last_writes = 
+    //     mapToSet(kv_view).forall(e =>
+    //         lastWrite.values().exists(m => m.getOrElse(e._1, -1) == e._2)
+    //     )
 
     val kv_invariants = all {
         kv_no_negative_size,
@@ -97,5 +120,6 @@ module BaseKV {
         keys_within_domain,
         values_within_domain,
         map_is_functional,
+        // all_kv_values_in_last_writes
     }
 }

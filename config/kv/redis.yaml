@@ -1,0 +1,6 @@
+type: Redis
+consistency: strong
+conditional_writes: false
+idempotent_writes: false
+replicas: true
+max_size: 100

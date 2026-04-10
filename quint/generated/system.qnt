@@ -3,25 +3,17 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
+    import BaseQueue.* from "../systems/queue/baseQueue"
     import BaseKV.* from "../systems/kv/baseKV"
-    import RabbitMQ.* from "../systems/queue/rabbitMQ"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
     // Unified Init
     action init = all {
-        initKV,
         initQueue,
+        initKV,
         initComposition
     }
 
-    action compositeSync(r1: Replica, r2: Replica): bool = all {
-        sync(r1, r2),
-        queue' = queue,
-        inflight' = inflight,
-        history' = history,
-        delivered' = delivered,
-        processed' = processed
-    }
     action compositeEnqueue(m: Message): bool = all {
         enqueue(m),
         kv' = kv,
@@ -36,11 +28,12 @@ module System {
         visibleReplicas' = visibleReplicas,
         processed' = processed
     }
-    action compositeDelete(m: Message): bool = all {
-        delete(m),
-        kv' = kv,
-        lastWrite' = lastWrite,
-        visibleReplicas' = visibleReplicas,
+    action compositeSync(r1: Replica, r2: Replica): bool = all {
+        sync(r1, r2),
+        queue' = queue,
+        inflight' = inflight,
+        history' = history,
+        delivered' = delivered,
         processed' = processed
     }
 
@@ -54,20 +47,33 @@ module System {
         nondet replica: int = REPLICAS.oneOf()
         nondet recipients: Set[int] = CONSUMERS.oneOf()
         nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()
+                
+        // Random message from the queue for non-ordered delivery
+        nondet choice: Message = oneOf(if (queue.empty()) {
+            Set({id: 0, key: 0, value: 0, client: 0, recipients: Set()})
+        } else {
+            queue
+        })
 
         val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
 
+        // Determine ordering
+        // TODO: global ordering?
+        val deliveryTarget = if (ORDERING == 1) {
+            // FIFO
+            queue
+        } else {
+            // No ordering, deliver any message in the queue
+            Set(choice)
+        }
+
         any {
-            compositeSync(replica, dst),
             compositeEnqueue(input),
-            match getHead(queue) {
+            match getHead(deliveryTarget) {
                 | Some(m) => compositeDeliver(m)
                 | None => allUnchanged
             },
-            match getHead(queue) {
-                | Some(m) => compositeDelete(m)
-                | None => allUnchanged
-            },
+            compositeSync(replica, dst),
             match getHead(inflight) {
                 | Some(m) => process(m._1, m._2, replica)
                 | None => allUnchanged
@@ -78,8 +84,8 @@ module System {
 
     // Base Invariants
     val base_invariants = all {
-        kv_invariants,
         queue_invariants,
+        kv_invariants,
         composition_invariants,    
     }   
 

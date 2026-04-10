@@ -28,12 +28,16 @@ def generate(caps_source, caps_target):
     with open("quint/generated/generated_invariants.qnt", "w") as f:
         f.write(quint)
 
-    print(f"Generated {len(active)} invariants (from SOURCE)")
+    print(
+        f"Generated {len(active)} invariants { '(from SOURCE)' if (caps_source != caps_target) else '' }"
+    )
 
     # --- System from TARGET ---
     generate_system_qnt(caps_target, systems_db, "quint/generated/system.qnt")
 
-    print(f"Generated system.qnt (from TARGET)")
+    print(
+        f"Generated system.qnt { '(from TARGET)' if (caps_source != caps_target) else '' }"
+    )
 
 
 def main():

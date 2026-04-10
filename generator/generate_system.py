@@ -86,8 +86,25 @@ def generate_step(actions):
         nondet replica: int = REPLICAS.oneOf()
         nondet recipients: Set[int] = CONSUMERS.oneOf()
         {"nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()" if replicas else ""}
+                
+        // Random message from the queue for non-ordered delivery
+        nondet choice: Message = oneOf(if (queue.empty()) {{
+            Set({{id: 0, key: 0, value: 0, client: 0, recipients: Set()}})
+        }} else {{
+            queue
+        }})
 
         val input: Message = {{id: id, key: k, value: v, client: client, recipients: recipients}}
+
+        // Determine ordering
+        // TODO: global ordering?
+        val deliveryTarget = if (ORDERING == 1) {{
+            // FIFO
+            queue
+        }} else {{
+            // No ordering, deliver any message in the queue
+            Set(choice)
+        }}
 
         any {{
             {body}
@@ -96,10 +113,11 @@ def generate_step(actions):
 """
 
 
-def handleTypesQuint():
+def handleTypesQuint(active):
     """
-    Handle the case where replicas are used in the system.
+    Handle updating Types.qnt file.
     """
+
     with open("quint/systems/common/types.qnt", "r") as f:
         lines = f.readlines()
 
@@ -115,6 +133,10 @@ def handleTypesQuint():
         elif line.startswith("    pure val CONSUMERS:"):
             lines[i] = (
                 f"    pure val CONSUMERS: Set[Set[int]] = {"1.to(3).powerset().filter(r => not(r.size() > 1))" if pub_sub else "Set(Set(1))"}\n"
+            )
+        elif line.startswith("    pure val ORDERING:"):
+            lines[i] = (
+                f"    pure val ORDERING: int = {1 if active["queue"]["ordering"] == "first_in_first_out" else 0}\n"
             )
     with open("quint/systems/common/types.qnt", "w") as f:
         f.writelines(lines)
@@ -137,7 +159,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
 
     # Check queue type
     pub_sub = any(systems_db[s]["type"].startswith("queue_pubsub") for s in systems)
-    handleTypesQuint()
+    handleTypesQuint(active)
 
     for s in systems:
         all_state += systems_db[s]["state"]

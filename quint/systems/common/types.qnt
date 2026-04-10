@@ -7,6 +7,10 @@ module Types {
     pure val CLIENTS: Set[int] = 1.to(2)
     pure val CONSUMERS: Set[Set[int]] = Set(Set(1))
 
+    // TODO: implement ordering guarantees Sync before then FIFO (global)
+    // 0: no ordering, 1: FIFO, 2: total ordering
+    pure val ORDERING: int = 1
+
     type Message = {
         id: int,
         key: int,

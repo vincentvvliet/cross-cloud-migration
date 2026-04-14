@@ -5,11 +5,20 @@ module Types {
     // Functionality without replicas is the same with a single replica that all clients can see
     pure val REPLICAS: Set[int] = 1.to(2)
     pure val CLIENTS: Set[int] = 1.to(2)
-    pure val CONSUMERS: Set[Set[int]] = Set(Set(1))
+    pure val CONSUMERS: Set[Set[int]] = 1.to(3).powerset().filter(r => not(r.size() > 1))
 
     // TODO: implement ordering guarantees Sync before then FIFO (global)
     // 0: no ordering, 1: FIFO, 2: total ordering
-    pure val ORDERING: int = 1
+    pure val ORDERING_MODE: int = FIFO
+    // 0: at most once, 1: at least once, 2: exactly once
+    pure val DELIVERY_MODE: int = AT_LEAST_ONCE
+
+    pure val AT_MOST_ONCE = 0
+    pure val AT_LEAST_ONCE = 1
+    pure val EXACTLY_ONCE = 2
+
+    pure val FIFO = 0
+    pure val UNORDERED = 1
 
     type Message = {
         id: int,

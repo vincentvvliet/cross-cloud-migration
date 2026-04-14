@@ -35,26 +35,49 @@ module BaseQueue {
     // ---- DELIVERY ----
 
     // generic delivery
-    action deliver(m: Message): bool = all {
-        require(m.in(queue)),
+    // action deliver(m: Message): bool = all {
+    //     require(m.in(queue)),
 
-        queue' = setRemove(queue, m),
-        inflight' = inflight.union(m.recipients.map(r => (r, m))),
-        history' = history,
-        delivered' = delivered,
-    }
-
-    // ---- ACK / DELETE ----
-
-    // action ack(m: Message): bool = all {
-    //     require(m.recipients.forall(r => inflight.contains((r, m)))),
-
-    //     inflight' = setRemove(inflight, (m.recipients, m)),
-    //     delivered' = delivered.union(Set((m.recipients, m))),
-    //     queue' = queue,
+    //     queue' = setRemove(queue, m),
+    //     inflight' = inflight.union(m.recipients.map(r => (r, m))),
     //     history' = history,
+    //     delivered' = delivered,
     // }
 
+    action deliver(m: Message, mode: int): bool = all {
+        require(m.in(queue)),
+        // require((not (DELIVERY_MODE == EXACTLY_ONCE)) or (not delivered.exists(p => p._2.id == m.id))),
+
+        // AT MOST ONCE: allow drop (no delivery)
+        if (DELIVERY_MODE == AT_MOST_ONCE and mode == 0) all {
+            queue' = setRemove(queue, m),
+            inflight' = inflight,
+            delivered' = delivered,
+            history' = history
+        } else all {
+            // --- NORMAL DELIVERY ---
+            val newInflight = inflight.union(m.recipients.map(r => (r, m)))
+
+            // AT LEAST ONCE: allow duplicates
+            if (DELIVERY_MODE == AT_LEAST_ONCE and mode == 2) {
+                inflight' = newInflight.union(m.recipients.map(r => (r, m)))
+            } else {
+                inflight' = newInflight
+            },
+
+            // TODO: FIX
+            // EXACTLY ONCE: prevent re-delivery
+            // if (DELIVERY_MODE == EXACTLY_ONCE) {
+            //     require(not (delivered.exists(p => p._2.id == m.id)))
+            // },
+
+            queue' = setRemove(queue, m),
+            history' = history,
+            delivered' = delivered
+        }
+    }
+
+    // ---- DELETE ----
     action delete(m: Message): bool = all {
         require(m.in(queue)),
 
@@ -63,6 +86,36 @@ module BaseQueue {
         delivered' = delivered.union(m.recipients.map(r => (r, m))), // TODO: check if this is correct for pub/sub. We want to mark as delivered to all recipients
         history' = setRemove(history, m), // deletion removes from history to uphold exaclty-once invariant
     }
+
+    // action delete(m: Message): bool = all {
+    //     require(m.in(queue)),
+
+    //     // EXACTLY_ONCE → record delivery permanently
+    //     if (DELIVERY_MODE == EXACTLY_ONCE) all{
+    //         delivered' = delivered.union(m.recipients.map(r => (r, m))),
+    //         history' = setRemove(history, m),
+    //     } else all {
+    //         // weaker guarantees → no strict tracking
+    //         delivered' = delivered,
+    //         history' = history,
+    //     }
+
+    //     // match (DELIVERY_MODE == EXACTLY_ONCE) {
+    //     //     case true => all {
+    //     //         delivered' = delivered.union(m.recipients.map(r => (r, m))),
+    //     //         history' = setRemove(history, m),
+    //     //     },
+    //     //     case false => {
+    //     //         // weaker guarantees → no strict tracking
+    //     //         delivered' = delivered,
+    //     //         history' = history,
+    //     //     }
+    //     // }
+
+    //     // TODO: FIX
+    //     queue' = setRemove(queue, m),
+    //     inflight' = inflight
+    // }
 
     // ---- INVARIANTS ----
     val queue_max_size = size(queue) <= QUEUE_MAX_SIZE

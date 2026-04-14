@@ -13,6 +13,10 @@ SIGNATURES = {
         args="m: Message",
         call=lambda name: f"{name}(m)",
     ),
+    "msg_delivery": Signature(
+        args="m: Message, deliveryChoice: int",
+        call=lambda name: f"{name}(m, deliveryChoice)",
+    ),
     "msg_replica": Signature(
         args="m: Message, r: Replica",
         call=lambda name: f"{name}(m, r)",

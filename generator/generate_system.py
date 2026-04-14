@@ -61,6 +61,8 @@ def generate_step(actions):
             if src.startswith("inflight"):
                 src = src.split(",")[0]
                 action_call = f"{fn}(m._1, m._2, replica)"
+            elif src.startswith("deliveryTarget"):
+                action_call = f"{fn}(m, deliveryChoice)"
             else:
                 action_call = f"{fn}(m)"
 
@@ -94,11 +96,14 @@ def generate_step(actions):
             queue
         }})
 
+        // Nondeterministic Delivery Choice: 0 = drop, 1 = normal, 2 = duplicate
+        nondet deliveryChoice: int = oneOf(Set(0, 1, 2))
+
         val input: Message = {{id: id, key: k, value: v, client: client, recipients: recipients}}
 
         // Determine ordering
         // TODO: global ordering?
-        val deliveryTarget = if (ORDERING == 1) {{
+        val deliveryTarget = if (ORDERING_MODE == FIFO) {{
             // FIFO
             queue
         }} else {{
@@ -134,9 +139,13 @@ def handleTypesQuint(active):
             lines[i] = (
                 f"    pure val CONSUMERS: Set[Set[int]] = {"1.to(3).powerset().filter(r => not(r.size() > 1))" if pub_sub else "Set(Set(1))"}\n"
             )
-        elif line.startswith("    pure val ORDERING:"):
+        elif line.startswith("    pure val ORDERING_MODE:"):
             lines[i] = (
-                f"    pure val ORDERING: int = {1 if active["queue"]["ordering"] == "first_in_first_out" else 0}\n"
+                f"    pure val ORDERING_MODE: int = {"FIFO" if active["queue"]["ordering"] in ["first_in_first_out", "queue_level", "partition_level"] else "UNORDERED"}\n"
+            )
+        elif line.startswith("    pure val DELIVERY_MODE:"):
+            lines[i] = (
+                f"    pure val DELIVERY_MODE: int = {"AT_LEAST_ONCE" if active["queue"]["delivery"] == 1 else ("EXACTLY_ONCE" if active["queue"]["delivery"] == 2 else "AT_MOST_ONCE")}\n"
             )
     with open("quint/systems/common/types.qnt", "w") as f:
         f.writelines(lines)

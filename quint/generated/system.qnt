@@ -3,7 +3,7 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import BaseQueue.* from "../systems/queue/baseQueue"
+    import ActiveMQ.* from "../systems/queue/activeMQ"
     import BaseKV.* from "../systems/kv/baseKV"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
@@ -14,15 +14,22 @@ module System {
         initComposition
     }
 
-    action compositeEnqueue(m: Message): bool = all {
-        enqueue(m),
+    action compositePublish(m: Message): bool = all {
+        publish(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
         processed' = processed
     }
-    action compositeDeliver(m: Message): bool = all {
-        deliver(m),
+    action compositeDeliver(m: Message, deliveryChoice: int): bool = all {
+        deliver(m, deliveryChoice),
+        kv' = kv,
+        lastWrite' = lastWrite,
+        visibleReplicas' = visibleReplicas,
+        processed' = processed
+    }
+    action compositeDelete(m: Message): bool = all {
+        delete(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -55,11 +62,14 @@ module System {
             queue
         })
 
+        // Nondeterministic Delivery Choice: 0 = drop, 1 = normal, 2 = duplicate
+        nondet deliveryChoice: int = oneOf(Set(0, 1, 2))
+
         val input: Message = {id: id, key: k, value: v, client: client, recipients: recipients}
 
         // Determine ordering
         // TODO: global ordering?
-        val deliveryTarget = if (ORDERING == 1) {
+        val deliveryTarget = if (ORDERING_MODE == FIFO) {
             // FIFO
             queue
         } else {
@@ -68,9 +78,13 @@ module System {
         }
 
         any {
-            compositeEnqueue(input),
+            compositePublish(input),
             match getHead(deliveryTarget) {
-                | Some(m) => compositeDeliver(m)
+                | Some(m) => compositeDeliver(m, deliveryChoice)
+                | None => allUnchanged
+            },
+            match getHead(queue) {
+                | Some(m) => compositeDelete(m)
                 | None => allUnchanged
             },
             compositeSync(replica, dst),

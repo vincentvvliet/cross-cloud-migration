@@ -48,15 +48,6 @@ module BaseKV {
         // out = kv.get(r).getOrElse(m.key, -1),
     }
 
-    // Sync replicas for specified key
-    // action sync(m: Message, src: Replica, dst: Replica): bool = all {
-    //     require(src.in(kv.keys()) and dst.in(kv.keys())),
-    //     require(m.key.in(kv.get(src).keys())),
-    //     kv' = kv.put(dst, kv.get(dst).put(m.key, kv.get(src).get(m.key))),
-    //     lastWrite' = lastWrite,
-    //     visibleReplicas' = visibleReplicas,
-    // }
-
     action sync(src: Replica, dst: Replica): bool = all {
         require(src.in(kv.keys()) and dst.in(kv.keys())),
         // Note: this is a simple sync that only copies over keys that are not already present at dst. More complex syncs could involve conflict resolution, timestamps, etc.
@@ -77,13 +68,6 @@ module BaseKV {
         ),
         visibleReplicas' = visibleReplicas
     }
-
-    // TODO: deletion from all replicas?
-    // action delete(m: Message): bool = all {
-    //     kv' = kv.map(k => k._2).(r, kv.get(r).mapRemove(m.key)),
-    //     lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).mapRemove(m.key)),
-    //     visibleReplicas' = visibleReplicas
-    // }
 
     val kv_view: int -> int =
         // Convert each inner map to a set of (key, value) pairs, then flatten
@@ -109,10 +93,10 @@ module BaseKV {
             size(mapToSet(kv_view).filter(e => e._1 == k)) <= 1
         )
     
-    // val all_kv_values_in_last_writes = 
-    //     mapToSet(kv_view).forall(e =>
-    //         lastWrite.values().exists(m => m.getOrElse(e._1, -1) == e._2)
-    //     )
+    val all_kv_values_in_last_writes = 
+        mapToSet(kv_view).forall(e =>
+            lastWrite.values().exists(m => m.getOrElse(e._1, -1) == e._2)
+        )
 
     val kv_invariants = all {
         kv_no_negative_size,
@@ -120,6 +104,6 @@ module BaseKV {
         keys_within_domain,
         values_within_domain,
         map_is_functional,
-        // all_kv_values_in_last_writes
+        all_kv_values_in_last_writes
     }
 }

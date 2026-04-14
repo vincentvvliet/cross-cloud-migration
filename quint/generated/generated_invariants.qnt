@@ -5,7 +5,7 @@ module GeneratedInvariants {
     import commonSpells.* from "../systems/common/commonSpells"
     import basicSpells.* from "../systems/common/basicSpells"
     import KVQueue.* from "../systems/compositions/kvQueue"
-		import BaseQueue.* from "../systems/queue/baseQueue"
+		import ActiveMQ.* from "../systems/queue/activeMQ"
 		import BaseKV.* from "../systems/kv/baseKV"
 
     val processed_from_queue = processed.forall(p => history.exists(m => m.id == p._2.id))

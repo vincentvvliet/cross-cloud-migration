@@ -2,15 +2,15 @@ composition:
   name: KVQueue
 systems:
   queue:
-    type: BaseQueue
-    delivery: exactly_once
-    ordering: first_in_first_out
-    messaging_model: p2p
-    max_size: 100
+    type: ActiveMQ
+    delivery: at_least_once
+    ordering: queue_level
+    messaging_model: pub_sub
+    max_size: 10000
   kv:
     type: BaseKV
     consistency: strong
     conditional_writes: true
     idempotent_writes: true
-    replicas: false
+    replicas: true
     max_size: 100

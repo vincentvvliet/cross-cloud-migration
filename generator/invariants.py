@@ -39,7 +39,15 @@ INVARIANTS = [
     Invariant(
         name="processed_from_queue",
         requires={"queue.delivery": Delivery.AT_LEAST_ONCE},
-        quint="processed.forall(p => history.exists(m => m.id == p._2.id))",
+        quint="convertToSet(processed).forall(p => history.exists(m => m.id == p._2.id))",
+    ),
+    Invariant(
+        name="no_double_processing",
+        requires={"queue.delivery": Delivery.AT_LEAST_ONCE},
+        quint="""
+        convertToSet(processed).forall(p =>
+            size(history.filter(m => m.id == p._2.id)) == 1
+        )""",
     ),
     Invariant(
         name="all_kv_from_queue",
@@ -49,7 +57,7 @@ INVARIANTS = [
           history.exists(m =>
             m.key == e._1 and
             m.value == e._2 and
-            processed.map(p => p._2.id).contains(m.id)
+            convertToSet(processed).map(p => p._2.id).contains(m.id)
           )
         )
         """,
@@ -63,7 +71,7 @@ INVARIANTS = [
         },
         quint="""
         history.forall(m =>
-          processed.map(p => p._2.id).contains(m.id)
+          convertToSet(processed).map(p => p._2.id).contains(m.id)
             iff kv_view.getOrElse(m.key, -1) == m.value
         )
         """,
@@ -74,8 +82,8 @@ INVARIANTS = [
             "queue.delivery": Delivery.AT_MOST_ONCE,
         },
         quint="""
-      processed.forall(p =>
-            processed.forall(other_p =>
+      convertToSet(processed).forall(p =>
+            convertToSet(processed).forall(other_p =>
                 p._2.id == other_p._2.id or
                 history.filter(m => m.id == p._2.id).size() == 1
             )
@@ -89,7 +97,7 @@ INVARIANTS = [
         },
         quint="""
       // Crashes should not occur unless specified in the system model
-      history.size() == queue.size() + inflight.size() + processed.size()
+      history.size() == queue.size() + inflight.size() + convertToSet(processed).size()
       """,
     ),
 ]

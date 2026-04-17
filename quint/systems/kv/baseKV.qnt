@@ -31,9 +31,19 @@ module BaseKV {
 
     // --- Actions ---
     // For combined system, writing is handled in kvQueue.process()
+    // action write(m: Message, r: Replica): bool = all {
+    //     require(r.in(kv.keys())),
+    //     require(lastWrite.values().forall(clientMap => not(clientMap.keys().contains(m.key)))), // Unique key
+    //     kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
+    //     lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).put(m.key, m.value)),
+    //     visibleReplicas' = visibleReplicas
+    // }
+
     action write(m: Message, r: Replica): bool = all {
         require(r.in(kv.keys())),
-        require(lastWrite.values().forall(clientMap => not(clientMap.keys().contains(m.key)))), // Unique key
+        require(CONDITIONAL_WRITES implies (not (kv.get(r).keys().contains(m.key)))),
+        require(IDEMPOTENT_WRITES implies (kv.get(r).getOrElse(m.key, m.value) == m.value)),
+
         kv' = kv.put(r, kv.get(r).put(m.key, m.value)),
         lastWrite' = lastWrite.put(m.client, lastWrite.get(m.client).put(m.key, m.value)),
         visibleReplicas' = visibleReplicas
@@ -48,6 +58,24 @@ module BaseKV {
         // out = kv.get(r).getOrElse(m.key, -1),
     }
 
+    // action read2(m: Message, r: Replica, out: int): bool = all {
+    //     require(r.in(visibleReplicas.get(m.client))),
+
+    //     // TODO: FIX
+    //     val observedReplica =
+    //         if (CONSISTENCY_MODE == STRONG)
+    //             r
+    //         else
+    //             oneOf(visibleReplicas.get(m.client)),
+
+    //     kv' = kv,
+    //     lastWrite' = lastWrite,
+    //     visibleReplicas' = visibleReplicas,
+
+    //     // conceptual read
+    //     // out = kv.get(observedReplica).getOrElse(m.key, -1)
+    // }
+
     action sync(src: Replica, dst: Replica): bool = all {
         require(src.in(kv.keys()) and dst.in(kv.keys())),
         // Note: this is a simple sync that only copies over keys that are not already present at dst. More complex syncs could involve conflict resolution, timestamps, etc.
@@ -57,6 +85,32 @@ module BaseKV {
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
     }
+
+    // action sync2(src: Replica, dst: Replica): bool = all {
+    //     require(src.in(kv.keys()) and dst.in(kv.keys())),
+
+    //     if (CONSISTENCY_MODE == EVENTUAL) {
+    //         // partial propagation
+    //         val keys = kv.get(src).keys()
+    //         val subset = keys.filter(k => oneOf(Set(true, false)))
+
+    //         kv' = subset.fold(kv, (acc, k) =>
+    //             acc.put(dst, acc.get(dst).put(k, kv.get(src).get(k)))
+    //         )
+    //     } else {
+    //         // strong → full sync
+    //         // TODO: CHECK WHICH
+    //         // kv' = kv.get(src).keys().fold(kv, (acc, k) =>
+    //         //     acc.put(dst, acc.get(dst).put(k, kv.get(src).get(k)))
+    //         // )
+    //         kv' = kv.get(src).keys()
+    //             .filter(k => not (k.in(kv.get(dst).keys()))) // Only get keys not already in dst to avoid overwriting at dst
+    //             .fold(kv, (acc, k) => acc.put(dst, acc.get(dst).put(k, kv.get(src).get(k)))), 
+    //     },
+
+    //     lastWrite' = lastWrite,
+    //     visibleReplicas' = visibleReplicas
+    // }
 
     action deleteKV(m: Message, r: Replica): bool = all {
         require(r.in(kv.keys())),

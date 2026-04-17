@@ -3,7 +3,7 @@ source:
     name: KVQueue
   systems:
     kv: BaseKV
-    queue: Kafka
+    queue: BaseQueue
 target:
   composition:
     name: KVQueue

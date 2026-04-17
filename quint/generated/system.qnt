@@ -3,19 +3,27 @@ module System {
     import basicSpells.* from "../systems/common/basicSpells"
     import GeneratedInvariants.* from "./generated_invariants"
 
-    import ActiveMQ.* from "../systems/queue/activeMQ"
     import BaseKV.* from "../systems/kv/baseKV"
+    import RabbitMQ.* from "../systems/queue/rabbitMQ"
     import KVQueue.* from "../systems/compositions/kvQueue"
 
     // Unified Init
     action init = all {
-        initQueue,
         initKV,
+        initQueue,
         initComposition
     }
 
-    action compositePublish(m: Message): bool = all {
-        publish(m),
+    action compositeSync(r1: Replica, r2: Replica): bool = all {
+        sync(r1, r2),
+        queue' = queue,
+        inflight' = inflight,
+        history' = history,
+        delivered' = delivered,
+        processed' = processed
+    }
+    action compositeEnqueue(m: Message): bool = all {
+        enqueue(m),
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
@@ -33,14 +41,6 @@ module System {
         kv' = kv,
         lastWrite' = lastWrite,
         visibleReplicas' = visibleReplicas,
-        processed' = processed
-    }
-    action compositeSync(r1: Replica, r2: Replica): bool = all {
-        sync(r1, r2),
-        queue' = queue,
-        inflight' = inflight,
-        history' = history,
-        delivered' = delivered,
         processed' = processed
     }
 
@@ -78,7 +78,10 @@ module System {
         }
 
         any {
-            compositePublish(input),
+            if (queue.empty()) compositeEnqueue(input) // Force enqueue if queue is empty to ensure progress and avoid deadlock
+            else any {
+                compositeSync(replica, dst),
+            compositeEnqueue(input),
             match getHead(deliveryTarget) {
                 | Some(m) => compositeDeliver(m, deliveryChoice)
                 | None => allUnchanged
@@ -87,10 +90,10 @@ module System {
                 | Some(m) => compositeDelete(m)
                 | None => allUnchanged
             },
-            compositeSync(replica, dst),
             match getHead(inflight) {
                 | Some(m) => process(m._1, m._2, replica)
                 | None => allUnchanged
+            }
             }
         }
     }
@@ -98,8 +101,8 @@ module System {
 
     // Base Invariants
     val base_invariants = all {
-        queue_invariants,
         kv_invariants,
+        queue_invariants,
         composition_invariants,    
     }   
 

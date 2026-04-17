@@ -377,6 +377,9 @@ module basicSpells {
   def convertToList(s: Set[a]): List[a] =
       (s.fold([], (acc, x) => acc.append(x)))
 
+  def convertToSet(l: List[a]): Set[a] =
+      (l.foldl(Set(), (acc, x) => acc.union(Set(x))))
+
   def getHead(s: Set[a]): Option[a] = {
       if (s.size() >= 1) Some(convertToList(s).head())
       else None

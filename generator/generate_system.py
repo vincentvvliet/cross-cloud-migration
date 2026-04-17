@@ -112,7 +112,10 @@ def generate_step(actions):
         }}
 
         any {{
-            {body}
+            if (queue.empty()) compositeEnqueue(input) // Force enqueue if queue is empty to ensure progress and avoid deadlock
+            else any {{
+                {body}
+            }}
         }}
     }}
 """
@@ -145,8 +148,21 @@ def handleTypesQuint(active):
             )
         elif line.startswith("    pure val DELIVERY_MODE:"):
             lines[i] = (
-                f"    pure val DELIVERY_MODE: int = {"AT_LEAST_ONCE" if active["queue"]["delivery"] == 1 else ("EXACTLY_ONCE" if active["queue"]["delivery"] == 2 else "AT_MOST_ONCE")}\n"
+                f"    pure val DELIVERY_MODE: int = {"AT_LEAST_ONCE" if active["queue"]["delivery"] == 1 else ("EXACTLY_ONCE" if active["queue"]["delivery"] == 2 else ("AT_MOST_ONCE" if active["queue"]["delivery"] == 0 else "UNKNOWN"))}\n"
             )
+        elif line.startswith("    pure val CONSISTENCY_MODE:"):
+            lines[i] = (
+                f"    pure val CONSISTENCY_MODE: int = {"STRONG" if active["kv"]["consistency"] == 1 else "EVENTUAL"}\n"
+            )
+        elif line.startswith("    pure val IDEMPOTENT_WRITES:"):
+            lines[i] = (
+                f"    pure val IDEMPOTENT_WRITES: bool = {str.lower(str(active['kv']['idempotent_writes']))}\n"
+            )
+        elif line.startswith("    pure val CONDITIONAL_WRITES:"):
+            lines[i] = (
+                f"    pure val CONDITIONAL_WRITES: bool = {str.lower(str(active['kv']['conditional_writes']))}\n"
+            )
+
     with open("quint/systems/common/types.qnt", "w") as f:
         f.writelines(lines)
         f.close()

@@ -56,10 +56,9 @@ module KVQueue {
     //     }
     // }
 
-    action process(recipient: int, m: Message, r: Replica): bool = all {
+    action process(recipient: int, m: Message, r: Replica, mode: int): bool = all {
         require(r.in(kv.keys())),
-
-        val mode = 0
+        require(recipient.in(m.recipients)), // Also handles failure in case of empty inflight
 
         if (DELIVERY_MODE == AT_MOST_ONCE and mode == 0) all {
             // skip processing entirely
@@ -129,7 +128,7 @@ module KVQueue {
         )
     
     // FIFO ordering
-    // TODO: only works if ids are incremental
+    // TODO: rewrite such that for all processed messages, 
     // val fifo_ordering =
     //     history.forall(m1 =>
     //         history.forall(m2 =>
@@ -149,7 +148,7 @@ module KVQueue {
     }
 
     val composition_specific_invariants = all {
-        kv_values_eventually_from_processed,
+        kv_values_eventually_from_processed, //TODO: fix
     }
 
 }

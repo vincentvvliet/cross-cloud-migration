@@ -29,7 +29,14 @@ def generate_composite_action(name, arg_type, owned, all_state, composite):
 
     for v in all_state:
         if v not in owned:
-            lines.append(f"        {v}' = {v},")
+            if v == "nextMessageId":
+                # Special handling for nextMessageId: only update if the action is enqueue
+                if name == "enqueue":
+                    lines.append(f"        nextMessageId' = nextMessageId + 1,")
+                else:
+                    lines.append(f"        nextMessageId' = nextMessageId,")
+            else:
+                lines.append(f"        {v}' = {v},")
 
     lines[-1] = lines[-1].rstrip(",")
     lines.append("    }")
@@ -58,30 +65,30 @@ def generate_step(actions):
 
         # state source
         if src:
-            if src.startswith("inflight"):
+            if src.startswith("processTarget"):
                 src = src.split(",")[0]
-                action_call = f"{fn}(m._1, m._2, replica)"
+                action_call = f"all {{ {fn}(m._1, m._2, replica, deliveryMode), nextMessageId' = nextMessageId }}"
+
             elif src.startswith("deliveryTarget"):
-                action_call = f"{fn}(m, deliveryChoice)"
+                action_call = f"{fn}(m, deliveryMode)"
             else:
                 action_call = f"{fn}(m)"
 
             calls.append(
                 f"""match getHead({src}) {{
-                | Some(m) => {action_call}
-                | None => allUnchanged
-            }}"""
+                    | Some(m) => {action_call}
+                    | None => AllUnchanged
+                }}"""
             )
             continue
 
         raise ValueError(f"Unsupported input source: {src}")
 
-    body = ",\n            ".join(calls)
+    body = ",\n                ".join(calls)
 
     return f"""
     // Unified Step
     action step = {{
-        nondet id: int = VALUES.oneOf()
         nondet k: int = VALUES.oneOf()
         nondet v: int = VALUES.oneOf()
         nondet client: int = CLIENTS.oneOf()
@@ -89,27 +96,42 @@ def generate_step(actions):
         nondet recipients: Set[int] = CONSUMERS.oneOf()
         {"nondet dst: int = REPLICAS.filter(r => r != replica).oneOf()" if replicas else ""}
                 
+        val input: Message = {{id: nextMessageId, key: k, value: v, client: client, recipients: recipients}}
+
+        // Determine ordering
         // Random message from the queue for non-ordered delivery
-        nondet choice: Message = oneOf(if (queue.empty()) {{
-            Set({{id: 0, key: 0, value: 0, client: 0, recipients: Set()}})
+        nondet deliveryChoice: Message = oneOf(if (queue.empty()) {{
+            Set({{id: nextMessageId, key: 0, value: 0, client: 0, recipients: Set()}})
         }} else {{
             queue
         }})
 
-        // Nondeterministic Delivery Choice: 0 = drop, 1 = normal, 2 = duplicate
-        nondet deliveryChoice: int = oneOf(Set(0, 1, 2))
-
-        val input: Message = {{id: id, key: k, value: v, client: client, recipients: recipients}}
-
-        // Determine ordering
         // TODO: global ordering?
         val deliveryTarget = if (ORDERING_MODE == FIFO) {{
             // FIFO
             queue
         }} else {{
-            // No ordering, deliver any message in the queue
-            Set(choice)
+            // No ordering, deliver random message in the queue
+            Set(deliveryChoice)
         }}
+
+        nondet processChoice: (Recipient, Message) = oneOf(if (inflight.empty()) {{
+            Set((-1, {{id: -1, key: -1, value: -1, client: 1, recipients: Set()}}))
+        }} else {{
+            inflight
+        }})
+
+        // Determine ordering of processing
+        val processTarget = if (ORDERING_MODE == FIFO) {{
+            // FIFO
+            inflight
+        }} else {{
+            // No ordering, process random message in the inflight
+            Set(processChoice)
+        }}
+
+        // Nondeterministic Delivery Mode: 0 = drop, 1 = normal, 2 = duplicate
+        nondet deliveryMode: int = oneOf(Set(0, 1, 2))
 
         any {{
             if (queue.empty()) compositeEnqueue(input) // Force enqueue if queue is empty to ensure progress and avoid deadlock
@@ -178,7 +200,7 @@ def generate_system_qnt(cfg, systems_db, out_path):
     # Use of replicas
     replicas = cfg["systems"]["kv"]["replicas"]
 
-    all_state = []
+    all_state = ["nextMessageId"]  # Initialize with global state variable
     systems = [s["type"] for s in active.values()]
     systems.append(cfg["composition"]["name"])
 
@@ -200,14 +222,27 @@ def generate_system_qnt(cfg, systems_db, out_path):
     for s in systems:
         lines.append("    " + systems_db[s]["import"])
 
+    # Define global message ID generator
+    lines.append("")
+    lines.append("    var nextMessageId: int // Global message ID generator")
+
     lines.append("")
     lines.append("    // Unified Init")
     lines.append("    action init = all {")
     for s in systems:
         lines.append(f"        {systems_db[s]['init']},")
-    lines[-1] = lines[-1].rstrip(",")
+    lines.append("        nextMessageId' = 1,")
     lines.append("    }")
     lines.append("")
+
+    # All Unchanged
+    lines.append(
+        f"""    // All Unchanged
+    action AllUnchanged = all {{
+        {', '.join([f"{v}' = {v}" for v in all_state])} 
+    }}
+        """
+    )
 
     # Composite actions
     actions = []

@@ -4,7 +4,7 @@
     "state": ["processed"],
     "type": "composition",
     "actions": {
-      "process": { "arg_type": "msg_replica", "composite": false, "input": "inflight, replica"}
+      "process": { "arg_type": "msg_replica", "composite": false, "input": "processTarget, replica"}
     },
     "init": "initComposition"
   },
